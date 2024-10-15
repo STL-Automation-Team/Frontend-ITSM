@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import Login from './Components/Login';
 import Dashboard from './Pages/DashboardComponents/Dashboard';
 import IncidentHome from './Pages/Incidents/IncidentHome';
-import AddIncident from './Pages/Incidents/AddIncident';
+import AddIncident from './Pages/Incidents/AddIncidentSchema';
 
 
 

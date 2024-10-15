@@ -1,0 +1,57 @@
+{
+    "type": "VerticalLayout",
+    "elements": [
+      {
+        "type": "Control",
+        "scope": "#/properties/caller_name"
+      },
+      {
+        "type": "Control",
+        "scope": "#/properties/location"
+      },
+      {
+        "type": "Control",
+        "scope": "#/properties/category"
+      },
+      {
+        "type": "Control",
+        "scope": "#/properties/priority",
+        "options": {
+          "format": "radio"
+        }
+      },
+      {
+        "type": "Control",
+        "scope": "#/properties/title"
+      },
+      {
+        "type": "Control",
+        "scope": "#/properties/description",
+        "options": {
+          "multi": true
+        }
+      },
+      {
+        "type": "Control",
+        "scope": "#/properties/attachments"
+      },
+      {
+        "type": "Control",
+        "scope": "#/properties/status",
+        "options": {
+          "format": "radio"
+        }
+      },
+      {
+        "type": "Control",
+        "scope": "#/properties/sla_status",
+        "options": {
+          "format": "radio"
+        }
+      },
+      {
+        "type": "Control",
+        "scope": "#/properties/department_id"
+      }
+    ]
+  }

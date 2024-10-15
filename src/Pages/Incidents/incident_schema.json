@@ -1,0 +1,59 @@
+{
+    "type": "object",
+    "properties": {
+      "caller_name": {
+        "type": "string",
+        "title": "Caller Name"
+      },
+      "location": {
+        "type": "string",
+        "title": "Location"
+      },
+      "category": {
+        "type": "string",
+        "title": "Category"
+      },
+      "priority": {
+        "type": "string",
+        "enum": ["LOW", "MEDIUM", "HIGH"],
+        "title": "Priority"
+      },
+      "title": {
+        "type": "string",
+        "title": "Title"
+      },
+      "description": {
+        "type": "string",
+        "title": "Description"
+      },
+      "attachments": {
+        "type": "string",
+        "title": "Attachments"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["OPEN", "CLOSED", "PENDING"],
+        "title": "Status"
+      },
+      "sla_status": {
+        "type": "string",
+        "enum": ["BREACHED", "NOT BREACHED"],
+        "title": "SLA Status"
+      },
+      "department_id": {
+        "type": "string",
+        "title": "Department"
+      }
+    },
+    "required": [
+      "caller_name",
+      "location",
+      "category",
+      "priority",
+      "title",
+      "description",
+      "status",
+      "sla_status",
+      "department_id"
+    ]
+  }
