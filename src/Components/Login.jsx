@@ -6,15 +6,15 @@ import { useNavigate } from "react-router-dom";
 import animationData from "../Images/LoginAnimation1.json";
 import STLLogo from '../Images/STLLogo.png';
 import Loginbg1 from '../Images/Loginbg1.png';
+import { AuthProvider, useAuth } from "./AuthProvider";
 
+// All styled components remain the same...
 const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
-  // width: '100vw',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   backgroundImage: `url(${Loginbg1})`,
-  // padding: theme.spacing(3),
   backgroundSize: 'cover',
   backgroundPosition: 'center',
 }));
@@ -66,26 +66,31 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState({ type: "", content: "" });
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch('http://10.100.130.76:3000/login/login', {
+      const response = await fetch('http://10.100.130.76:3000/api/v1/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username, password }),
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
+        // Use the login function from auth context
+        await login(data.access_token);
+        localStorage.setItem('contact_id', data.contact_id);
+  
         setMessage({ type: "success", content: "Login successful!" });
-        // Navigate to dashboard after successful login
+        
         setTimeout(() => {
           navigate('/dashboard');
-        }, 1500); // Delay navigation to show success message
+        }, 1500);
       } else {
         setMessage({ type: "error", content: data.message || "Login failed. Please try again." });
       }
@@ -94,9 +99,11 @@ const LoginPage = () => {
     }
   };
 
+
   const handleCloseSnackbar = () => {
     setMessage({ type: "", content: "" });
   };
+
 
   return (
     <PageContainer>

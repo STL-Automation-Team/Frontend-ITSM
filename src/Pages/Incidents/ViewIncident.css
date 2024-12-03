@@ -1,0 +1,86 @@
+/* Status Badge Styles */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px; /* Decrease padding */
+    font-size: 12px; /* Smaller font size */
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  
+  .status-badge.new {
+    background-color: #d1e7dd;
+    color: #0f5132;
+  }
+  
+  .status-badge.ongoing {
+    background-color: #cfe2ff;
+    color: #084298;
+  }
+  
+  .status-badge.on-hold {
+    background-color: #fff3cd;
+    color: #664d03;
+  }
+  
+  .status-badge.verified {
+    background-color: #d2f4ea;
+    color: #05636c;
+  }
+  
+  .status-badge.rejected {
+    background-color: #f8d7da;
+    color: #842029;
+  }
+  
+  /* Priority Badge Styles */
+  .priority-badge {
+    display: inline-block;
+    padding: 4px 8px; /* Decrease padding */
+    font-size: 12px; /* Smaller font size */
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  
+  .priority-badge.high {
+    background-color: #f8d7da;
+    color: #842029;
+  }
+  
+  .priority-badge.moderate {
+    background-color: #fff3cd;
+    color: #664d03;
+  }
+  
+  .priority-badge.low {
+    background-color: #d1e7dd;
+    color: #0f5132;
+  }
+  
+  /* Incident Number Hyperlink */
+  .incident-number {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  
+  .incident-number:hover {
+    text-decoration: underline;
+  }
+  
+  /* DataGrid Container */
+  .incidents-container {
+    height: 700px;
+    width: 100%;
+  }
+  
+  .incidents-paper {
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+  }
+  
+  /* Override default grid width for scrolling */
+  .incidents-grid .MuiDataGrid-virtualScroller {
+    overflow-x: auto;
+  }
+  

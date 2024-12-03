@@ -1,0 +1,58 @@
+.bg-color {
+  min-height: 100vh;
+  background: #F5F6FA;
+  background: linear-gradient(158deg, rgb(224, 224, 224) 0%,rrgb(223, 237, 254) 100%);
+}
+
+/* circle icon button styles */
+.circle-icon-button {
+  border-radius: 50%;
+  background-color: #42a5f5 !important;
+  /* color: white !important; */
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  font-size: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.circle-icon-button:hover {
+  background-color: #1565c0 !important;
+}
+
+.circle-icon-button .icon {
+  font-size: 1.25rem;
+  transform: scale(1.1);
+  color : white;
+}
+
+
+
+/* Expanded Data Styles */
+.expanded-data-container {
+  /* background-color: #f5f5f5; */
+  border-radius: 4px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 5px;
+}
+
+.expanded-data-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-gap: 8px;
+}
+
+.expanded-data-key {
+  font-weight: bold;
+  color: #1976d2;
+}
+
+.expanded-data-value {
+  word-break: break-word;
+}

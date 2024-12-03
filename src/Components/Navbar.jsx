@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useState, useEffect } from "react";
 import { styled, alpha } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import MuiAppBar from "@mui/material/AppBar";
@@ -6,18 +7,27 @@ import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import InputBase from "@mui/material/InputBase";
-import Badge from "@mui/material/Badge";
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import MailIcon from "@mui/icons-material/Mail";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
+import LogoutIcon from "@mui/icons-material/Logout";
+import EditIcon from "@mui/icons-material/Edit";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import useAppStore from "../appStore";
-// import Logo from "../Images/Logo.png";
+import Logo from "../Images/STLLogo.png";
+import { useNavigate } from "react-router-dom";
+import AxiosInstance from "./AxiosInstance";
+import { Button, Avatar } from "@mui/material";
 
+const UserAvatar = styled(Avatar)(({ theme }) => ({
+  width: 32,
+  height: 32,
+  fontSize: '1rem',
+  backgroundColor: theme.palette.primary.main,
+}));
 
 const AppBar = styled(
   MuiAppBar,
@@ -56,7 +66,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: "inherit",
   "& .MuiInputBase-input": {
     padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create("width"),
     width: "100%",
@@ -69,12 +78,14 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function Navbar() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-
+  
   const updateOpen = useAppStore((state) => state.updateOpen);
   const dopen = useAppStore((state) => state.dopen);
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+
+  const navigate = useNavigate();
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -91,6 +102,21 @@ export default function Navbar() {
 
   const handleMobileMenuOpen = (event) => {
     setMobileMoreAnchorEl(event.currentTarget);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await AxiosInstance.post('/logout');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user_id');
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  const handleEditProfile = () => {
+    navigate('/edit-profile');
   };
 
   const menuId = "primary-search-account-menu";
@@ -110,8 +136,14 @@ export default function Navbar() {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+      <MenuItem onClick={handleEditProfile}>
+        <EditIcon sx={{ marginRight: 1 }} />
+        Edit Profile
+      </MenuItem>
+      <MenuItem onClick={handleLogout}>
+        <LogoutIcon sx={{ marginRight: 1 }} />
+        Logout
+      </MenuItem>
     </Menu>
   );
 
@@ -132,26 +164,6 @@ export default function Navbar() {
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
     >
-      <MenuItem>
-        <IconButton size="large" aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="error">
-            <MailIcon />
-          </Badge>
-        </IconButton>
-        <p>Messages</p>
-      </MenuItem>
-      <MenuItem>
-        <IconButton
-          size="large"
-          aria-label="show 17 new notifications"
-          color="inherit"
-        >
-          <Badge badgeContent={17} color="error">
-            <NotificationsIcon />
-          </Badge>
-        </IconButton>
-        <p>Notifications</p>
-      </MenuItem>
       <MenuItem onClick={handleProfileMenuOpen}>
         <IconButton
           size="large"
@@ -171,19 +183,17 @@ export default function Navbar() {
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="fixed" sx={{ backgroundColor: "white", boxShadow:"none" }}>
         <Toolbar>
-          
-
           <Typography
             variant="h6"
             noWrap
             component="div"
             sx={{ display: { xs: "none", sm: "block" } }}
           >
-            {/* <img
-            //   src={Logo}
+            <img
+              src={Logo}
               alt="Logo"
               style={{ height: "25px", width: "auto", marginRight:"1rem", marginTop:"5px" }}
-            /> */}
+            />
           </Typography>
           <IconButton
             size="large"
@@ -205,36 +215,25 @@ export default function Navbar() {
             />
           </Search>
           <Box sx={{ flexGrow: 1 }} />
-          <Box sx={{ display: { xs: "none", md: "flex" } }}>
-            <IconButton
-              size="large"
-              aria-label="show 4 new mails"
-              color="black"
-            >
-              <Badge badgeContent={4} color="error">
-                <MailIcon />
-              </Badge>
-            </IconButton>
-            <IconButton
-              size="large"
-              aria-label="show 17 new notifications"
-              color="black"
-            >
-              <Badge badgeContent={17} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-            <IconButton
-              size="large"
-              edge="end"
-              aria-label="account of current user"
-              aria-controls={menuId}
-              aria-haspopup="true"
+          <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}>
+            <Typography variant="subtitle1" color="black" sx={{ fontWeight: "bold", marginRight: 1 }}>
+              {/* {userName.toUpperCase()} */}
+              <br/>
+              {/* {role} */}
+            </Typography>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer' 
+              }} 
               onClick={handleProfileMenuOpen}
-              color="black"
             >
-              <AccountCircle />
-            </IconButton>
+              <UserAvatar>
+                {/* {userName.charAt(0).toUpperCase()} */}
+              </UserAvatar>
+              <ArrowDropDownIcon sx={{ color: 'black', ml: 0.5 }} />
+            </Box>
           </Box>
           <Box sx={{ display: { xs: "flex", md: "none" } }}>
             <IconButton

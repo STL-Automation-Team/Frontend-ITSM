@@ -1,0 +1,50 @@
+.approved-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+
+.taken-to-revenue {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+}
+
+.approved-status.approved {
+  background-color: #4caf50; /* Green for Approved */
+}
+
+.approved-status.rejected {
+  background-color: #f44336; /* Red for Rejected */
+}
+
+.approved-status.returned-back {
+  background-color: #ac07ff; /* Orange for Returned Back */
+}
+
+.approved-status.pending-for-review {
+  background-color: #1e25a5; /* Amber for Pending for Review */
+}
+
+.approved-status.allocated-to-ndm {
+  background-color: #08a48b; /* Indigo for Allocated to NDM */
+}
+
+.approved-status.zero {
+  background-color: #ff8b07; /* Gray for 0 (not approved) */
+  width: 4rem;
+}
+
+.taken-to-revenue.boolean-yes {
+  background-color: green;
+}
+
+.taken-to-revenue.boolean-no {
+  background-color: red;
+}
