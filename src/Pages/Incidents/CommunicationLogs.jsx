@@ -81,12 +81,12 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
     <TabContext value={tab}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <TabList onChange={(e, newValue) => setTab(newValue)}>
-          <Tab label="Communication" value="1" />
-          <Tab label="Logs" value="2" />
+          {/* <Tab label="Communication" value="2" /> */}
+          <Tab label="Logs" value="1" />
         </TabList>
       </Box>
       
-      <TabPanel value="1">
+      {/* <TabPanel value="2">
         <Box mb={2}>
           {comments.map((comment, index) => (
             <Box 
@@ -117,9 +117,9 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
             Save
           </Button>
         </Box>
-      </TabPanel>
+      </TabPanel> */}
       
-      <TabPanel value="2">
+      <TabPanel value="1">
         <Box>
           {logs.map((log) => (
             <React.Fragment key={log.audit_id}>

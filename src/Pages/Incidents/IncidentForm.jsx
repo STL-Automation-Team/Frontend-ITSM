@@ -25,6 +25,8 @@ import {
 import AxiosInstance from "../../Components/AxiosInstance";
 import IncidentAddSuccessAlert from "./IncidentAddSuccessAlert";
 import { useAuth } from "../../Components/AuthProvider";
+import { useNavigate } from 'react-router-dom';
+
 
 const colors = {
   primary: "#2196f3",
@@ -69,7 +71,7 @@ const IncidentForm = ({ onSubmit }) => {
     severity: "error"
   });
 
-
+  const navigate = useNavigate();
   const [contacts, setContacts] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -291,8 +293,7 @@ const IncidentForm = ({ onSubmit }) => {
   };
 
   const handleViewDetails = () => {
-    // Implement your view details logic here
-    console.log('View details clicked');
+    navigate(`/incident/view?highlight=${createdIncidentNumber}`);
     setShowSuccessModal(false);
   };
 

@@ -73,6 +73,8 @@ const EditIncidentForm = ({ incidentData, onSubmit }) => {
     ref_id: incidentData.ref_id,
     start_date: incidentData.start_date,
     work_group_id: incidentData.work_group_id,
+    resolution_time: incidentData.resolution_time,
+    response_time: incidentData.response_time,
   });
 
   console.log(formData);
@@ -296,30 +298,41 @@ const EditIncidentForm = ({ incidentData, onSubmit }) => {
     });
   };
 
-
+  console.log(isUserRole);
+  console.log(isResolverRole);
+  console.log(isSDMRole);
+  console.log(formData.department_id)
   const isFieldDisabled = (fieldName) => {
     // For User role, all fields are disabled
     if (isUserRole) return true;
 
-    if (isResolverRole && ['category', 'subcategory'].includes(fieldName)) return true;
-
+  
+    // For Category field, disable if department_id is empty
+    if (fieldName === 'category') {
+      if (!formData.department_id) return true; // Disable if department_id is empty
+    }
+  
+    // For Subcategory field, disable if category_id is empty
+    if (fieldName === 'subcategory') {
+      if (!formData.categoryId) return true; // Disable if category_id is empty
+    }
+  
+    // For SDM role, disable certain fields if department_id is not set
     if (isSDMRole) {
       if (['category', 'subcategory', 'attachments', 'assignment_group', 'assigned_to'].includes(fieldName)) {
         return !formData.department_id; // Disabled if department_id is not set
       }
     }
-
+  
+    // For Resolver role, disable category and subcategory
+    if (isResolverRole && ['category', 'subcategory'].includes(fieldName)) return true;
+  
     // For SDM and Resolver roles, only specific fields are editable
-    const editableFields = [
-      'status', 
-      'attachments', 
-      'assignment_group', 
-      'assigned_to', 
-      'cc'
-    ];
-
+    const editableFields = ['status', 'attachments', 'assignment_group', 'assigned_to', 'cc'];
+  
     return !editableFields.includes(fieldName);
   };
+  
 
 
   const handleSubmit = async (e) => {
@@ -793,6 +806,36 @@ const EditIncidentForm = ({ incidentData, onSubmit }) => {
             size="small"
             name="start_date"
             value={formData.start_date || ""}
+            onChange={handleInputChange}
+            sx={inputStyle}
+          />,
+          true
+        )}
+
+
+{renderFormField(
+          "Response Time",
+          "response_time",
+          <TextField
+            fullWidth
+            size="small"
+            name="response_time"
+            value={formData.response_time || ""}
+            onChange={handleInputChange}
+            sx={inputStyle}
+          />,
+          true
+        )}
+
+
+{renderFormField(
+          "Resolution Time",
+          "resolution_time",
+          <TextField
+            fullWidth
+            size="small"
+            name="resolution_time"
+            value={formData.resolution_time || ""}
             onChange={handleInputChange}
             sx={inputStyle}
           />,

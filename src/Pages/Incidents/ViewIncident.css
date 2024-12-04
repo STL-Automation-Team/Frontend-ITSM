@@ -1,44 +1,56 @@
 /* Status Badge Styles */
 .status-badge {
     display: inline-block;
-    padding: 4px 8px; /* Decrease padding */
-    font-size: 12px; /* Smaller font size */
-    border-radius: 12px;
-    font-weight: 600;
+    padding: 2px 6px; /* Reduced padding */
+    font-size: 14px; /* Slightly smaller font size */
+    border-radius: 8px; /* Smaller border radius */
+    /* font-weight: 600; */
+    line-height: 1; /* Ensure compact height */
   }
   
   .status-badge.new {
-    background-color: #d1e7dd;
-    color: #0f5132;
+    background-color: #c9e8e8;
+    color: #105352;
   }
   
-  .status-badge.ongoing {
-    background-color: #cfe2ff;
-    color: #084298;
+  .status-badge.in-progress {
+    background-color: #cbdcf9;
+    color: #103690;
   }
   
-  .status-badge.on-hold {
+  .status-badge.reassignment {
     background-color: #fff3cd;
     color: #664d03;
   }
   
-  .status-badge.verified {
+  .status-badge.hold-customer {
+    background-color: #e2e8f0;
+    color: #475569;
+  }
+  
+  .status-badge.hold-oem {
+    background-color: #f3f4f6;
+    color: #6b7280;
+  }
+  
+  .status-badge.resolve {
     background-color: #d2f4ea;
     color: #05636c;
   }
   
-  .status-badge.rejected {
-    background-color: #f8d7da;
-    color: #842029;
+  .status-badge.default {
+    background-color: #e5e7eb;
+    color: #374151;
   }
   
   /* Priority Badge Styles */
   .priority-badge {
     display: inline-block;
-    padding: 4px 8px; /* Decrease padding */
-    font-size: 12px; /* Smaller font size */
-    border-radius: 12px;
-    font-weight: 600;
+    padding: 2px 6px; /* Reduced padding */
+    font-size: 14px; /* Slightly smaller font size */
+    border-radius: 8px; /* Smaller border radius */
+    /* font-weight: 600; */
+    line-height: 1; /* Ensure compact height */
   }
   
   .priority-badge.high {
@@ -52,8 +64,8 @@
   }
   
   .priority-badge.low {
-    background-color: #d1e7dd;
-    color: #0f5132;
+    background-color: #b9fbfb;
+    color: #047070;
   }
   
   /* Incident Number Hyperlink */
@@ -69,18 +81,39 @@
   
   /* DataGrid Container */
   .incidents-container {
-    height: 700px;
+    max-height: 600px;
     width: 100%;
   }
   
   .incidents-paper {
     height: 100%;
     width: 100%;
-    overflow: auto;
+    overflow: hidden;
+  }
+  
+  /* Grid Cell Centering */
+  .grid-cell-center {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 16px;
+    height: 100%;
   }
   
   /* Override default grid width for scrolling */
   .incidents-grid .MuiDataGrid-virtualScroller {
     overflow-x: auto;
   }
-  
+
+
+  /* Highlighted Row Style */
+.highlighted-row {
+  background-color: #d2ddff !important; /* Light purple background */
+  font-weight: bold;
+  color: #1e3a8a;
+}
+
+/* Optional: Override hover effect for highlighted row */
+.highlighted-row:hover {
+  background-color: #d2ddff !important;
+}
