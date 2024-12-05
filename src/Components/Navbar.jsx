@@ -16,23 +16,21 @@ import MoreIcon from "@mui/icons-material/MoreVert";
 import LogoutIcon from "@mui/icons-material/Logout";
 import EditIcon from "@mui/icons-material/Edit";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import useAppStore from "../appStore";
-import Logo from "../Images/STLLogo.png";
+import { Button, Avatar } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import AxiosInstance from "./AxiosInstance";
-import { Button, Avatar } from "@mui/material";
+import useAppStore from "../appStore";
+import { useAuth } from "./AuthProvider";
+import Logo from "../Images/STLLogo.png";
 
 const UserAvatar = styled(Avatar)(({ theme }) => ({
   width: 32,
   height: 32,
-  fontSize: '1rem',
+  fontSize: "1rem",
   backgroundColor: theme.palette.primary.main,
 }));
 
-const AppBar = styled(
-  MuiAppBar,
-  {}
-)(({ theme }) => ({
+const AppBar = styled(MuiAppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
 }));
 
@@ -76,16 +74,40 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function Navbar() {
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
-  
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
+  const [userName, setUserName] = useState("");
+  const { userRoles } = useAuth(); // Fetch role from AuthProvider
+  const [role, setRole] = useState(userRoles.join(", ")); // Assuming multiple roles
+
   const updateOpen = useAppStore((state) => state.updateOpen);
   const dopen = useAppStore((state) => state.dopen);
 
+  const navigate = useNavigate();
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const contactId = localStorage.getItem("contact_id");
+      console.log(contactId);
+      if (contactId) {
+        try {
+          const response = await AxiosInstance.get(`http://10.100.130.76:3000/contact/${contactId}`);
+          console.log(response);
+          const userData = response.data.name; // Assuming the first result is correct
+          console.log(userData);
+          if (userData) {
+            setUserName(userData); // Set the username from response
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -100,88 +122,24 @@ export default function Navbar() {
     handleMobileMenuClose();
   };
 
-  const handleMobileMenuOpen = (event) => {
-    setMobileMoreAnchorEl(event.currentTarget);
-  };
-
   const handleLogout = async () => {
     try {
-      await AxiosInstance.post('/logout');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user_id');
-      navigate('/');
+      await AxiosInstance.post("/logout");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("contact_id");
+      navigate("/");
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
-  const handleEditProfile = () => {
-    navigate('/edit-profile');
-  };
-
   const menuId = "primary-search-account-menu";
-  const renderMenu = (
-    <Menu
-      anchorEl={anchorEl}
-      anchorOrigin={{
-        vertical: "top",
-        horizontal: "right",
-      }}
-      id={menuId}
-      keepMounted
-      transformOrigin={{
-        vertical: "top",
-        horizontal: "right",
-      }}
-      open={isMenuOpen}
-      onClose={handleMenuClose}
-    >
-      <MenuItem onClick={handleEditProfile}>
-        <EditIcon sx={{ marginRight: 1 }} />
-        Edit Profile
-      </MenuItem>
-      <MenuItem onClick={handleLogout}>
-        <LogoutIcon sx={{ marginRight: 1 }} />
-        Logout
-      </MenuItem>
-    </Menu>
-  );
-
-  const mobileMenuId = "primary-search-account-menu-mobile";
-  const renderMobileMenu = (
-    <Menu
-      anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{
-        vertical: "top",
-        horizontal: "right",
-      }}
-      id={mobileMenuId}
-      keepMounted
-      transformOrigin={{
-        vertical: "top",
-        horizontal: "right",
-      }}
-      open={isMobileMenuOpen}
-      onClose={handleMobileMenuClose}
-    >
-      <MenuItem onClick={handleProfileMenuOpen}>
-        <IconButton
-          size="large"
-          aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
-          aria-haspopup="true"
-          color="inherit"
-        >
-          <AccountCircle />
-        </IconButton>
-        <p>Profile</p>
-      </MenuItem>
-    </Menu>
-  );
+  console.log("hi",userName);
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="fixed" sx={{ backgroundColor: "white", boxShadow:"none" }}>
+      <AppBar position="fixed" sx={{ backgroundColor: "white", boxShadow: "none" }}>
         <Toolbar>
           <Typography
             variant="h6"
@@ -192,7 +150,7 @@ export default function Navbar() {
             <img
               src={Logo}
               alt="Logo"
-              style={{ height: "25px", width: "auto", marginRight:"1rem", marginTop:"5px" }}
+              style={{ height: "25px", width: "auto", marginRight: "1rem", marginTop: "5px" }}
             />
           </Typography>
           <IconButton
@@ -200,57 +158,42 @@ export default function Navbar() {
             edge="start"
             color="inherit"
             aria-label="open drawer"
-            sx={{ mr: 2, color:"black" }}
+            sx={{ mr: 2, color: "black" }}
             onClick={() => updateOpen(!dopen)}
           >
             <MenuIcon />
           </IconButton>
-          <Search sx={{ color:"black", border: "0.5px solid #D5D5D5", backgroundColor:"#F5F6FA" }} >
+          <Search
+            sx={{ color: "black", border: "0.5px solid #D5D5D5", backgroundColor: "#F5F6FA" }}
+          >
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search…"
-              inputProps={{ "aria-label": "search" }}
-            />
+            <StyledInputBase placeholder="Search…" inputProps={{ "aria-label": "search" }} />
           </Search>
           <Box sx={{ flexGrow: 1 }} />
-          <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}>
-            <Typography variant="subtitle1" color="black" sx={{ fontWeight: "bold", marginRight: 1 }}>
-              {/* {userName.toUpperCase()} */}
-              <br/>
-              {/* {role} */}
+          <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", marginRight:"0.5rem" }}>
+          <Typography variant="subtitle1" color="black" sx={{ fontWeight: "bold", marginRight: 2, fontSize:'0.9rem' }}>
+              {userName.toUpperCase()}
+              <br />
+              {role}
             </Typography>
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                cursor: 'pointer' 
-              }} 
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+                marginRight: '1rem'
+              }}
               onClick={handleProfileMenuOpen}
             >
-              <UserAvatar>
-                {/* {userName.charAt(0).toUpperCase()} */}
-              </UserAvatar>
-              <ArrowDropDownIcon sx={{ color: 'black', ml: 0.5 }} />
+              <UserAvatar sx={{marginRight:'1rem'}}>{userName.charAt(0).toUpperCase()}</UserAvatar>
+              
+              <ArrowDropDownIcon sx={{ color: "black", ml: 0.5 }} />
             </Box>
-          </Box>
-          <Box sx={{ display: { xs: "flex", md: "none" } }}>
-            <IconButton
-              size="large"
-              aria-label="show more"
-              aria-controls={mobileMenuId}
-              aria-haspopup="true"
-              onClick={handleMobileMenuOpen}
-              color="black"
-            >
-              <MoreIcon />
-            </IconButton>
           </Box>
         </Toolbar>
       </AppBar>
-      {renderMobileMenu}
-      {renderMenu}
     </Box>
   );
 }
