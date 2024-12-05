@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Paper, Grid, CircularProgress, Alert } from '@mui/material';
+import { Box, Paper, Grid, CircularProgress, Alert, Typography } from '@mui/material';
 import EditIncidentForm from './EditIncidentForm';
 import CommunicationLogs from './CommunicationLogs';
 import AxiosInstance from '../../Components/AxiosInstance';
@@ -55,17 +55,30 @@ const ViewIncidentDetails = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 2 }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Paper elevation={1}>
-            {incident && (
+        <Typography
+      sx={{marginBottom:'10px', color: 'black', fontWeight:'bold', fontSize:'20px'}}
+     >
+       Edit Incident
+     </Typography>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          padding: '1rem',
+        }}
+      >
+       {incident && (
               <EditIncidentForm
                 incidentData={incident}
                 onSubmit={handleIncidentUpdate}
               />
             )}
-          </Paper>
+      </Paper>
+    
         </Grid>
         <Grid item xs={12}>
           <Paper elevation={1}>
