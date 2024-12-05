@@ -34,7 +34,7 @@ const AddIncident = () => {
 
   const fetchUserData = async () => {
     try {
-      const contactId = localStorage.getItem('contactID');
+      const contactId = localStorage.getItem('contact_id');
       if (!contactId) {
         throw new Error('Contact ID not found in localStorage');
       }
@@ -64,7 +64,7 @@ const AddIncident = () => {
       alert('Incident reported successfully!');
     } catch (error) {
       console.error('Error submitting incident:', error);
-      alert('Failed to submit incident. Please try again.');
+      // alert('Failed to submit incident. Please try again.');
     }
   };
 

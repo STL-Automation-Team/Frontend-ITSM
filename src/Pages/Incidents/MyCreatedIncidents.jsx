@@ -55,7 +55,7 @@ const StatusBadge = ({ status }) => {
           );
         };
 
-const MyAssignedIncidents = () => {
+const MyCreatedIncidents = () => {
   const navigate = useNavigate();
   const [incidents, setIncidents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -132,7 +132,7 @@ const MyAssignedIncidents = () => {
       }
   
       const incidentsResponse = await AxiosInstance.get(
-        `http://10.100.130.76:3000/api/v1/incidents/incidents_details?skip=${paginationModel.page * paginationModel.pageSize}&limit=${paginationModel.pageSize}&assigned_to=${currentUser.id}`
+        `http://10.100.130.76:3000/api/v1/incidents/incidents_details?skip=${paginationModel.page * paginationModel.pageSize}&limit=${paginationModel.pageSize}&created_by=${contactId}`
       );
   
       if (incidentsResponse.data.length === 0) {
@@ -226,4 +226,4 @@ const MyAssignedIncidents = () => {
   );
 };
 
-export default MyAssignedIncidents;
+export default MyCreatedIncidents;
