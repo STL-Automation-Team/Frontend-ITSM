@@ -5,6 +5,9 @@ import Paper from "@mui/material/Paper";
 import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import * as XLSX from "xlsx";
 import AxiosInstance from "../../Components/AxiosInstance";
 import "./ViewIncident.css";
 
@@ -54,6 +57,7 @@ const ViewIncident = ({ highlightedRefId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const highlightedRowRef = useRef(null);
   const [error, setError] = useState(null);
+  const [filteredRows, setFilteredRows] = useState([]);
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 50,
@@ -62,6 +66,20 @@ const ViewIncident = ({ highlightedRefId }) => {
   const handleIncidentClick = (id) => {
     navigate(`/incidents/${id}`);
   };
+
+  const handleDownload = () => {
+    // Use filteredRows if available, otherwise use all incidents
+    const dataToDownload = filteredRows.length > 0 ? filteredRows : incidents;
+    
+    // Convert the filtered incidents into a format suitable for Excel
+    const worksheet = XLSX.utils.json_to_sheet(dataToDownload);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Incidents");
+
+    // Trigger download
+    XLSX.writeFile(workbook, `incidents_${new Date().toISOString()}.xlsx`);
+  };
+
 
   const columns = [
     {
@@ -164,6 +182,15 @@ const ViewIncident = ({ highlightedRefId }) => {
   }, [highlightedRefId, incidents]);
 
 
+  useEffect(() => {
+    if (highlightedRefId && highlightedRowRef.current) {
+      highlightedRowRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [highlightedRefId, incidents]);
+
   const fetchIncidents = async () => {
     try {
       const response = await AxiosInstance.get(
@@ -171,14 +198,12 @@ const ViewIncident = ({ highlightedRefId }) => {
           paginationModel.page * paginationModel.pageSize
         }&limit=${paginationModel.pageSize}`
       );
-  
-      const { data: incidentData, total_records } = response.data; // Destructure the response
-      // console.log("API Response:", incidentData);
-  
+
+      const { data: incidentData } = response.data;
+
       if (Array.isArray(incidentData)) {
         const formattedData = incidentData.map((incident) => ({
           ...incident,
-          id: incident.id,
           formattedStartDate: incident.start_date
             ? new Date(incident.start_date).toLocaleString()
             : "",
@@ -186,16 +211,13 @@ const ViewIncident = ({ highlightedRefId }) => {
             ? new Date(incident.last_update).toLocaleString()
             : "",
         }));
-  
-        // console.log("Formatted Data:", formattedData);
-  
+
         setIncidents(formattedData);
-        // setTotalRecords(total_records); // Optionally store total records if needed for pagination
       } else {
         console.error("Unexpected data format:", incidentData);
         setError("Unexpected data format received from API");
       }
-  
+
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching incidents:", error);
@@ -222,6 +244,25 @@ const ViewIncident = ({ highlightedRefId }) => {
   return (
     <Box className="incidents-container">
       <Paper className="incidents-paper">
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+          }}
+        >
+          <Typography variant="h6" component="h2">
+            Incidents
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleDownload}
+          >
+            Download
+          </Button>
+        </Box>
         <DataGrid
           rows={incidents}
           columns={columns}
@@ -235,6 +276,37 @@ const ViewIncident = ({ highlightedRefId }) => {
           getRowClassName={(params) =>
             params.row.ref_id === highlightedRefId ? "highlighted-row" : ""
           }
+          onFilterModelChange={(model) => {
+            // Get the filtered rows using the built-in filtering of DataGrid
+            const gridFilterModel = model;
+            if (!gridFilterModel.items || gridFilterModel.items.length === 0) {
+              setFilteredRows([]); // Reset filtered rows when no filters are applied
+              return;
+            }
+
+            // Apply filters manually to get filtered rows
+            const filtered = incidents.filter((row) => {
+              return gridFilterModel.items.every((filterItem) => {
+                if (!filterItem.field || !filterItem.operator || !filterItem.value) {
+                  return true;
+                }
+
+                const cellValue = row[filterItem.field];
+                const filterValue = filterItem.value;
+
+                switch (filterItem.operator) {
+                  case 'equals':
+                    return cellValue?.toString().toLowerCase() === filterValue?.toString().toLowerCase();
+                  case 'contains':
+                    return cellValue?.toString().toLowerCase().includes(filterValue?.toString().toLowerCase());
+                  // Add more operators as needed
+                  default:
+                    return true;
+                }
+              });
+            });
+            setFilteredRows(filtered);
+          }}
           sx={{
             border: "none",
             height: "600px",

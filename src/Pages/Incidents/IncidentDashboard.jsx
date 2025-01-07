@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { Grid, TextField, Button, Box, Paper, Typography } from "@mui/material";
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import PauseIcon from '@mui/icons-material/Pause';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import { Box, Button, Grid, Paper, TextField, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import React, { useEffect, useState } from "react";
+import AxiosInstance from "../../Components/AxiosInstance";
 import DashboardCards from "../DashboardComponents/DashboardCards";
 import DashboardGraphs from "../DashboardComponents/DashboardGraphs";
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import PauseIcon from '@mui/icons-material/Pause';
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import AxiosInstance from "../../Components/AxiosInstance";
+import IncidentAgingTable from './IncidentAgingTable';
 
+// Styled components remain the same
 const StyledTextField = styled(TextField)(({ theme }) => ({
   "& .MuiOutlinedInput-root": {
     backgroundColor: "#ffffff",
@@ -46,20 +48,43 @@ const FilterContainer = styled(Paper)(({ theme }) => ({
   backgroundColor: "#fff",
 }));
 
+// Utility function to get financial year start date and today's date
+const getDefaultDates = () => {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1; // JavaScript months are 0-based
+  
+  // If current month is before April, financial year started in previous year
+  const year = currentMonth < 4 ? currentYear - 1 : currentYear;
+  
+  // Create date string directly in YYYY-MM-DD format
+  const financialYearStart = `${year}-04-01`;
+  const todayFormatted = today.toISOString().split('T')[0];
+
+  return {
+    startDate: financialYearStart,
+    endDate: todayFormatted
+  };
+};
+
 export default function IncidentDashboard() {
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const defaultDates = getDefaultDates();
+  const [startDate, setStartDate] = useState(defaultDates.startDate);
+  const [endDate, setEndDate] = useState(defaultDates.endDate);
   const [statusCounts, setStatusCounts] = useState({
     new: 0,
     inProgress: 0,
     holdWithCustomer: 0,
-    reassigned: 0
+    close: 0
   });
   const [incidentsData, setIncidentsData] = useState(null);
   const [servicesData, setServicesData] = useState(null);
   const [priorities, setPriorities] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [dateError, setDateError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
 
   const fetchStatusCount = async (status) => {
     try {
@@ -67,7 +92,9 @@ export default function IncidentDashboard() {
         params: {
           skip: 0,
           limit: 10,
-          status: status
+          status: status,
+          start_date: startDate,
+          end_date: endDate
         }
       });
       return response.data.total_records;
@@ -79,18 +106,18 @@ export default function IncidentDashboard() {
 
   const fetchAllStatusCounts = async () => {
     try {
-      const [newCount, inProgressCount, holdCount, reassignedCount] = await Promise.all([
+      const [newCount, inProgressCount, holdCount, closeCount] = await Promise.all([
         fetchStatusCount('New'),
         fetchStatusCount('In Progress'),
         fetchStatusCount('Hold with Customer'),
-        fetchStatusCount('Reassigned')
+        fetchStatusCount('Close')
       ]);
 
       setStatusCounts({
         new: newCount,
         inProgress: inProgressCount,
         holdWithCustomer: holdCount,
-        reassigned: reassignedCount
+        close: closeCount
       });
     } catch (error) {
       console.error('Error fetching status counts:', error);
@@ -113,9 +140,73 @@ export default function IncidentDashboard() {
     }
   };
 
-  const fetchData = async (start, end) => {
+  const validateDates = (start, end) => {
+    // Clear previous error
+    setDateError("");
+
+    // Convert string dates to Date objects for comparison
+    const startDateObj = new Date(start);
+    const endDateObj = new Date(end);
+    const today = new Date();
+    const maxDate = new Date(today.getFullYear() + 1, 11, 31); // Max date is end of next year
+
+    // Check if dates are valid
+    if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
+      setDateError("Please enter valid dates");
+      return false;
+    }
+
+    // Check if end date is before start date
+    if (endDateObj < startDateObj) {
+      setDateError("End date must be after start date");
+      return false;
+    }
+
+    // Check if end date is in the future
+    if (endDateObj > today) {
+      setDateError("End date cannot be in the future");
+      return false;
+    }
+
+    // Check if date range is more than 5 years
+    const fiveYearsInMs = 5 * 365 * 24 * 60 * 60 * 1000;
+    if (endDateObj - startDateObj > fiveYearsInMs) {
+      setDateError("Date range cannot exceed 5 years");
+      return false;
+    }
+
+    // Check if start date is too far in the past (e.g., more than 10 years)
+    const tenYearsAgo = new Date();
+    tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);
+    if (startDateObj < tenYearsAgo) {
+      setDateError("Start date cannot be more than 10 years ago");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleStartDateChange = (e) => {
+    const newStartDate = e.target.value;
+    setStartDate(newStartDate);
+    validateDates(newStartDate, endDate);
+  };
+
+  const handleEndDateChange = (e) => {
+    const newEndDate = e.target.value;
+    setEndDate(newEndDate);
+    validateDates(startDate, newEndDate);
+  };
+
+  const fetchData = async (start = startDate, end = endDate) => {
+    if (!validateDates(start, end)) {
+      return;
+    }
+
+    setIsLoading(true);
+    
     try {
-      const params = start && end ? { start_date: start, end_date: end } : {};
+      const params = { start_date: start, end_date: end };
 
       const [incidentsRes, servicesRes] = await Promise.all([
         AxiosInstance.get(`/incidents-dashboard`, { params }),
@@ -131,13 +222,15 @@ export default function IncidentDashboard() {
 
   useEffect(() => {
     fetchReferenceData();
-    fetchData();
+    // Initial data fetch with default dates
+    fetchData(startDate, endDate);
     fetchAllStatusCounts();
-  }, []);
+  }, []); // Empty dependency array for initial load only
 
   const handleFilter = () => {
     if (startDate && endDate) {
       fetchData(startDate, endDate);
+      fetchAllStatusCounts();
     } else {
       alert("Please select both start and end dates");
     }
@@ -164,8 +257,8 @@ export default function IncidentDashboard() {
         icon: <PauseIcon sx={{ fontSize: 35, color: '#fff' }} />
       },
       {
-        title: "Reassigned",
-        value: statusCounts.reassigned,
+        title: "Close",
+        value: statusCounts.close,
         color: "#ff9800",
         icon: <SwapHorizIcon sx={{ fontSize: 35, color: '#fff' }} />
       },
@@ -207,7 +300,8 @@ export default function IncidentDashboard() {
   
       <Box sx={{ '& > *': { mb: 2 } }}>
         <DashboardCards cards={getCardData()} />
-        {incidentsData && servicesData && (
+        <IncidentAgingTable />
+        {/* {incidentsData && servicesData && (
           <DashboardGraphs
             incidentsData={incidentsData}
             servicesData={servicesData}
@@ -215,7 +309,7 @@ export default function IncidentDashboard() {
             statuses={statuses}
             departments={departments}
           />
-        )}
+        )} */}
       </Box>
     </Box>
   );
