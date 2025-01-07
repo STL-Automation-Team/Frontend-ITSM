@@ -152,6 +152,7 @@ export default function Navbar() {
               alt="Logo"
               style={{ height: "25px", width: "auto", marginRight: "1rem", marginTop: "5px" }}
             />
+            <Typography sx={{color: 'blue'}}>Falcon</Typography>
           </Typography>
           <IconButton
             size="large"

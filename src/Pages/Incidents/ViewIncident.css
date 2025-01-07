@@ -37,6 +37,11 @@
     background-color: #d2f4ea;
     color: #05636c;
   }
+
+  .status-badge.close {
+    background-color: #fdc8f2;
+    color: #6c0556;
+  }
   
   .status-badge.default {
     background-color: #e5e7eb;
@@ -81,7 +86,7 @@
   
   /* DataGrid Container */
   .incidents-container {
-    max-height: 600px;
+    max-height: 700px;
     width: 100%;
   }
   

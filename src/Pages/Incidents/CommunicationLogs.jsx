@@ -23,8 +23,25 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
       console.error('Error fetching logs:', error);
     }
   };
+
+  const fetchcomments = async () => {
+    try {
+      const response = await AxiosInstance.get(`http://10.100.130.76:3000/public_log/`, {
+        params: {
+          skip: 0,
+          limit: 10,
+          incident_id: incidentId
+        }
+      });
+      setComments(response.data);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
   
   useEffect(() => {
+    fetchcomments();
     fetchLogs();
   }, [incidentId]);
 
@@ -37,22 +54,63 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
   
   const handleCommentSubmit = async () => {
     try {
-      const contactId = localStorage.getItem('contactID');
-      const response = await AxiosInstance.post('/public_log/', {
+      const contactId = localStorage.getItem('contact_id');
+      if (!contactId) {
+        throw new Error('Contact ID not found in local storage');
+      }
+      const usersResponse = await AxiosInstance.get(
+        'http://10.100.130.76:3000/user/?skip=0&limit=10'
+      );
+  
+      const currentUser = usersResponse.data.find(
+        (user) => user.contact_id === parseInt(contactId)
+      );
+
+      console.log("HI",currentUser.id);
+  
+      if (!currentUser) {
+        throw new Error('User not found for the given contact ID');
+      }
+      // const response = await AxiosInstance.get(`http://10.100.130.76:3000/contact/${contactId}`);
+      // const { name } = response.data;
+      const newComment = {
         description: comment,
         incident_id: incidentId,
-        user_id: contactId
-      });
+        user_id: currentUser.id,
+        // contact_name: name
+      };
       
-      if (response.data) {
+      const postResponse = await AxiosInstance.post('http://10.100.130.76:3000/public_log/', newComment);
+      if (postResponse.data) {
         setComment('');
-        const newComments = [...comments, response.data];
+        const newComments = [...comments, postResponse.data];
         setComments(newComments);
       }
     } catch (error) {
       console.error('Error posting comment:', error);
     }
   };
+
+  const formatCommentMessage = (comment) => {
+    return (
+      <Box
+        sx={{
+          mb: 2,
+          p: 2,
+          bgcolor: 'grey.100',
+          borderRadius: 1,
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}
+      >
+        <Typography variant="subtitle2">{comment.contact_name}</Typography>
+        <Typography>{comment.description}</Typography>
+        <Typography variant="caption">
+          {new Date(comment.created_time).toLocaleString()}
+        </Typography>
+      </Box>
+    );
+  };
+
 
   const formatLogMessage = (log) => {
     return (
@@ -81,29 +139,20 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
     <TabContext value={tab}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <TabList onChange={(e, newValue) => setTab(newValue)}>
-          {/* <Tab label="Communication" value="2" /> */}
-          <Tab label="Logs" value="1" />
+          <Tab label="Communication" value="1" />
+          <Tab label="Logs" value="2" />
         </TabList>
       </Box>
       
-      {/* <TabPanel value="2">
+      <TabPanel value="1">
         <Box mb={2}>
           {comments.map((comment, index) => (
-            <Box 
-              key={index} 
-              mb={2} 
-              p={2} 
-              bgcolor="grey.100" 
-              borderRadius={1}
-              sx={{ boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
-            >
-              <Typography variant="subtitle2">{comment.contact_name}</Typography>
-              <Typography>{comment.description}</Typography>
-              <Typography variant="caption">{new Date(comment.created_time).toLocaleString()}</Typography>
-            </Box>
+            <React.Fragment key={index}>
+              {formatCommentMessage(comment)}
+            </React.Fragment>
           ))}
         </Box>
-        
+
         <TextField
           fullWidth
           multiline
@@ -117,9 +166,9 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
             Save
           </Button>
         </Box>
-      </TabPanel> */}
+      </TabPanel>
       
-      <TabPanel value="1">
+      <TabPanel value="2">
         <Box>
           {logs.map((log) => (
             <React.Fragment key={log.audit_id}>
@@ -133,3 +182,5 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
 };
 
 export default CommunicationLogs;
+
+

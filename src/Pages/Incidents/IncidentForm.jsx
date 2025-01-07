@@ -293,8 +293,14 @@ const IncidentForm = ({ onSubmit }) => {
   };
 
   const handleViewDetails = () => {
-    navigate(`/incident/view?highlight=${createdIncidentNumber}`);
-    setShowSuccessModal(false);
+    if(!isUserRole){
+      navigate(`/incident/all?highlight=${createdIncidentNumber}`);
+      setShowSuccessModal(false);
+    }
+    else {
+      navigate(`/incident/my?highlight=${createdIncidentNumber}`);
+      setShowSuccessModal(false);
+    }
   };
 
   const inputStyle = {

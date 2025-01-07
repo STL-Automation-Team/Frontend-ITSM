@@ -28,6 +28,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import CategoryIcon from "@mui/icons-material/Category";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAppStore from "../appStore";
+import { useAuth } from "./AuthProvider";
 
 const drawerWidth = 250;
 
@@ -84,18 +85,25 @@ export default function Sidenav() {
   const open = useAppStore((state) => state.dopen);
   const [openSubMenu, setOpenSubMenu] = React.useState(false);
   const [menuItems, setMenuItems] = useState([]);
+  const { userRoles } = useAuth();
+  const isUserRole = userRoles.includes('User');
 
   const isSelected = (path) => location.pathname === path;
 
   useEffect(() => {
     const items = [
-      { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
+      // { text: "Home", icon: <DashboardIcon />, path: "/dashboard" },
       {
         text: "Incident",
         icon: <WarningIcon />,
         subItems: [
+          { text: "Dashboard", icon: <AddCircleOutlineIcon />, path: "/incident/dashboard" },
           { text: "Create Incident", icon: <AddCircleOutlineIcon />, path: "/incident/create" },
-          { text: "View Incidents", icon: <ListIcon />, path: "/incident/view" },
+          ...(!isUserRole ? [
+            { text: "All Incidents", icon: <ListIcon />, path: "/incident/all" }
+          ] : []),
+          { text: "Assigned Incidents", icon: <ListIcon />, path: "/incident/assigned" },
+          { text: "My Incidents", icon: <ListIcon />, path: "/incident/my" },
         ],
       },
       {
@@ -116,7 +124,7 @@ export default function Sidenav() {
     ];
     
     setMenuItems(items);
-  }, [location.pathname]);
+  }, [location.pathname, isUserRole]);
 
   const renderMenuItem = (item, depth = 0) => {
     const isItemSelected = isSelected(item.path);

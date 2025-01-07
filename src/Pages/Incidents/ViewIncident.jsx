@@ -13,14 +13,16 @@ const StatusBadge = ({ status }) => {
     switch (status?.toLowerCase()) {
       case "new":
         return "status-badge new";
-      case "ongoing":
-        return "status-badge ongoing";
+      case "in-progress":
+        return "status-badge in-progress";
       case "on hold":
         return "status-badge on-hold";
       case "verified":
         return "status-badge verified";
-      case "rejected":
-        return "status-badge rejected";
+      case "resolve":
+        return "status-badge resolve";
+        case "close":
+          return "status-badge close";
       default:
         return "status-badge default";
     }
@@ -54,7 +56,7 @@ const ViewIncident = ({ highlightedRefId }) => {
   const [error, setError] = useState(null);
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 10,
+    pageSize: 50,
   });
 
   const handleIncidentClick = (id) => {
@@ -161,6 +163,7 @@ const ViewIncident = ({ highlightedRefId }) => {
     }
   }, [highlightedRefId, incidents]);
 
+
   const fetchIncidents = async () => {
     try {
       const response = await AxiosInstance.get(
@@ -168,20 +171,31 @@ const ViewIncident = ({ highlightedRefId }) => {
           paginationModel.page * paginationModel.pageSize
         }&limit=${paginationModel.pageSize}`
       );
-      const data = response.data;
-
-      const formattedData = data.map((incident) => ({
-        ...incident,
-        id: incident.id,
-        formattedStartDate: incident.start_date
-          ? new Date(incident.start_date).toLocaleString()
-          : "",
-        formattedLastUpdate: incident.last_update
-          ? new Date(incident.last_update).toLocaleString()
-          : "",
-      }));
-
-      setIncidents(formattedData);
+  
+      const { data: incidentData, total_records } = response.data; // Destructure the response
+      // console.log("API Response:", incidentData);
+  
+      if (Array.isArray(incidentData)) {
+        const formattedData = incidentData.map((incident) => ({
+          ...incident,
+          id: incident.id,
+          formattedStartDate: incident.start_date
+            ? new Date(incident.start_date).toLocaleString()
+            : "",
+          formattedLastUpdate: incident.last_update
+            ? new Date(incident.last_update).toLocaleString()
+            : "",
+        }));
+  
+        // console.log("Formatted Data:", formattedData);
+  
+        setIncidents(formattedData);
+        // setTotalRecords(total_records); // Optionally store total records if needed for pagination
+      } else {
+        console.error("Unexpected data format:", incidentData);
+        setError("Unexpected data format received from API");
+      }
+  
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching incidents:", error);
@@ -189,6 +203,7 @@ const ViewIncident = ({ highlightedRefId }) => {
       setIsLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchIncidents();
@@ -203,6 +218,7 @@ const ViewIncident = ({ highlightedRefId }) => {
     );
   }
 
+  // console.log("bye",incidents);
   return (
     <Box className="incidents-container">
       <Paper className="incidents-paper">

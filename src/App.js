@@ -9,6 +9,9 @@ import ViewIncidentDetails from './Pages/Incidents/ViewIncidentDetails';
 import { DataContextProvider } from './Components/DataContext'; // Add this import
 import { AuthProvider } from './Components/AuthProvider';
 import { ProtectedRoute } from './Components/AuthProvider';
+import MyCreatedIncidents from './Pages/Incidents/MyCreatedIncidents';
+import MyAssignedIncidents from './Pages/Incidents/MyAssignedIncidents';
+import IncidentDashboard from './Pages/Incidents/IncidentDashboard';
 
 function App() {
   return (
@@ -27,9 +30,12 @@ function App() {
               <Layout>
                 <Routes>
                   <Route path="/dashboard" element={ <ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                  <Route path="/incident/view" element={<ProtectedRoute><IncidentHome /></ProtectedRoute>} />
+                  <Route path="/incident/all" element={<ProtectedRoute><IncidentHome /></ProtectedRoute>} />
+                  <Route path="/incident/my" element={<ProtectedRoute><MyCreatedIncidents /></ProtectedRoute>} />
+                  <Route path="/incident/assigned" element={<ProtectedRoute><MyAssignedIncidents /></ProtectedRoute>} />
                   <Route path="/incident/create" element={<ProtectedRoute><AddIncident /></ProtectedRoute>} />
                   <Route path="/incidents/:id" element={<ProtectedRoute><ViewIncidentDetails /></ProtectedRoute>} />
+                  <Route path="/incident/dashboard" element={<ProtectedRoute>< IncidentDashboard/></ProtectedRoute>} />
                 </Routes>
               </Layout>
             

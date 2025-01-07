@@ -68,9 +68,9 @@ const IncidentAddSuccessAlert = ({ open, onClose, incidentNumber, onViewDetails 
               textTransform: 'none',
             }}
           >
-            View Details
+            OK
           </Button>
-          <Button
+          {/* <Button
             variant="outlined"
             onClick={onClose}
             sx={{
@@ -80,7 +80,7 @@ const IncidentAddSuccessAlert = ({ open, onClose, incidentNumber, onViewDetails 
             }}
           >
             Cancel
-          </Button>
+          </Button> */}
         </Box>
       </Box>
     </Box>

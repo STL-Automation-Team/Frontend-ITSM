@@ -12,18 +12,20 @@ import './ViewIncident.css';
 const StatusBadge = ({ status }) => {
     const getStatusStyle = () => {
       switch (status?.toLowerCase()) {
-        case 'new':
-          return 'status-badge new';
-        case 'ongoing':
-          return 'status-badge ongoing';
-        case 'on hold':
-          return 'status-badge on-hold';
-        case 'verified':
-          return 'status-badge verified';
-        case 'rejected':
-          return 'status-badge rejected';
-        default:
-          return 'status-badge default';
+        case "new":
+        return "status-badge new";
+      case "in-progress":
+        return "status-badge in-progress";
+      case "on hold":
+        return "status-badge on-hold";
+      case "verified":
+        return "status-badge verified";
+      case "resolve":
+        return "status-badge resolve";
+        case "close":
+          return "status-badge close";
+      default:
+        return "status-badge default";
       }
     };
 
@@ -63,7 +65,7 @@ const MyAssignedIncidents = () => {
   const [noData, setNoData] = useState(false); // New state for no data
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
-    pageSize: 10,
+    pageSize: 50,
   });
 
   const handleIncidentClick = (id) => {
@@ -179,6 +181,8 @@ const MyAssignedIncidents = () => {
   }
 
   return (
+    <Box>
+        <h2 style={{ margin: "0 0 16px 0", color: 'Black' }}>Assigned Incidents</h2>
     <Box className="my-assigned-incidents-container">
       {/* <h3 style={{ margin: '16px 0', color: 'Black' }}>My Assigned Incidents</h3> */}
       {noData ? (
@@ -222,6 +226,7 @@ const MyAssignedIncidents = () => {
           />
         </Paper>
       )}
+    </Box>
     </Box>
   );
 };

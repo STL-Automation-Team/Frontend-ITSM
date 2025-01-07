@@ -71,12 +71,14 @@ const LoginPage = () => {
   const handleLogin = async (event) => {
     event.preventDefault();
     try {
+      // Create a FormData object and append the login parameters
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('password', password);
+  
       const response = await fetch('http://10.100.130.76:3000/api/v1/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
+        body: formData,
       });
   
       const data = await response.json();
@@ -87,9 +89,9 @@ const LoginPage = () => {
         localStorage.setItem('contact_id', data.contact_id);
   
         setMessage({ type: "success", content: "Login successful!" });
-        
+  
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate('/incident/dashboard');
         }, 1500);
       } else {
         setMessage({ type: "error", content: data.message || "Login failed. Please try again." });
@@ -98,7 +100,7 @@ const LoginPage = () => {
       setMessage({ type: "error", content: "An error occurred. Please try again later." });
     }
   };
-
+  
 
   const handleCloseSnackbar = () => {
     setMessage({ type: "", content: "" });
