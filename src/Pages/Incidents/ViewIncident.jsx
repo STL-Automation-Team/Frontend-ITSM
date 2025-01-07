@@ -244,6 +244,13 @@ const ViewIncident = ({ highlightedRefId }) => {
   return (
     <Box className="incidents-container">
       <Paper className="incidents-paper">
+      <Button
+            variant="contained"
+            color="primary"
+            onClick={handleDownload}
+          >
+            Download
+          </Button>
         <Box
           sx={{
             display: "flex",
@@ -252,16 +259,7 @@ const ViewIncident = ({ highlightedRefId }) => {
             mb: 2,
           }}
         >
-          <Typography variant="h6" component="h2">
-            Incidents
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleDownload}
-          >
-            Download
-          </Button>
+          
         </Box>
         <DataGrid
           rows={incidents}

@@ -126,8 +126,6 @@ const MyCreatedIncidents = () => {
       const currentUser = usersResponse.data.find(
         (user) => user.contact_id === parseInt(contactId)
       );
-
-      console.log(currentUser.id);
   
       if (!currentUser) {
         throw new Error('User not found for the given contact ID');
@@ -137,11 +135,14 @@ const MyCreatedIncidents = () => {
         `http://10.100.130.76:3000/api/v1/incidents/incidents_details?skip=${paginationModel.page * paginationModel.pageSize}&limit=${paginationModel.pageSize}&created_by=${contactId}`
       );
   
-      if (incidentsResponse.data.length === 0) {
+      const { data, total_records } = incidentsResponse.data;
+  
+      if (data.length === 0) {
         setNoData(true);
       } else {
         setNoData(false);
-        const formattedData = incidentsResponse.data.map((incident) => ({
+  
+        const formattedData = data.map((incident) => ({
           ...incident,
           id: incident.id,
           formattedStartDate: incident.start_date
@@ -151,20 +152,20 @@ const MyCreatedIncidents = () => {
             ? new Date(incident.last_update).toLocaleString()
             : '',
         }));
+  
         setIncidents(formattedData);
       }
+  
       setIsLoading(false);
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        // Handle 404 error with custom message
         setError(error.response.data.detail || 'No incidents found');
       } else {
-        // Handle other errors
         setError(error.message || 'Failed to load incident data');
       }
       setIsLoading(false);
     }
-  };
+  };  
   
 
   useEffect(() => {
