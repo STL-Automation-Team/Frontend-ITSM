@@ -1,235 +1,318 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DataGrid } from '@mui/x-data-grid';
-import Paper from '@mui/material/Paper';
-import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
-import AlertTitle from '@mui/material/AlertTitle';
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Paper,
+  Button,
+} from '@mui/material';
+import * as XLSX from 'xlsx';
 import AxiosInstance from '../../Components/AxiosInstance';
 import './ViewIncident.css';
+import TableToolBar from './TableToolbar';
 
-// Reusing StatusBadge and PriorityBadge from ViewIncident
-const StatusBadge = ({ status }) => {
-    const getStatusStyle = () => {
-      switch (status?.toLowerCase()) {
-        case "new":
-        return "status-badge new";
-      case "in-progress":
-        return "status-badge in-progress";
-      case "on hold":
-        return "status-badge on-hold";
-      case "verified":
-        return "status-badge verified";
-      case "resolve":
-        return "status-badge resolve";
-        case "close":
-          return "status-badge close";
-      default:
-        return "status-badge default";
+const headCells = [
+  { id: 'ref_id', label: 'Number', width: '150px' },
+  { id: 'contact_display', label: 'User', width: '150px' },
+  { id: 'title', label: 'Title', width: '150px' },
+  { id: 'priority', label: 'Priority', width: '150px' },
+  { id: 'status', label: 'Status', width: '150px' },
+  { id: 'category', label: 'Category', width: '150px' },
+  { id: 'subcategory', label: 'Subcategory', width: '150px' },
+  { id: 'assigned_to_display', label: 'Assigned To', width: '150px' },
+  { id: 'created_by', label: 'Created By', width: '150px' },
+  { id: 'formattedStartDate', label: 'Opened', width: '150px' },
+  { id: 'formattedLastUpdate', label: 'Updated On', width: '150px' },
+];
+
+const StatusBadge = ({ status }) => (
+  <span className={`status-badge ${status?.toLowerCase()}`}>{status}</span>
+);
+
+const PriorityBadge = ({ priority }) => (
+  <span className={`priority-badge ${priority?.toLowerCase()}`}>{priority}</span>
+);
+
+export default function MyCreatedIncidents() {
+  const navigate = useNavigate();
+  const [incidents, setIncidents] = useState([]);
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('ref_id');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [statuses, setStatuses] = useState([]);
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [columnVisibility, setColumnVisibility] = useState(
+    headCells.reduce((acc, cell) => {
+      acc[cell.id] = true;
+      return acc;
+    }, {})
+  );
+
+  useEffect(() => {
+    const fetchStatuses = async () => {
+      try {
+        const response = await AxiosInstance.get('http://10.100.130.76:3000/api/v1/statuses');
+        setStatuses(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch statuses:', error);
       }
     };
 
-    return (
-        <span className={getStatusStyle()}>
-          {status}
-        </span>
-      );
-    };
+    fetchStatuses();
+  }, []);
 
-    const PriorityBadge = ({ priority }) => {
-        const getPriorityStyle = () => {
-          switch (priority?.toLowerCase()) {
-            case 'high':
-              return 'priority-badge high';
-            case 'critical':
-              return 'priority-badge moderate';
-            case 'low':
-              return 'priority-badge low';
-            default:
-              return 'priority-badge default';
-          }
-        };
+  useEffect(() => {
+    if (statuses.length > 0) {
+      setSelectedStatuses(statuses.map(s => s.id));
+    }
+  }, [statuses]);
 
-        return (
-            <span className={getPriorityStyle()}>
-              {priority}
-            </span>
-          );
-        };
+  useEffect(() => {
+    const defaultEndDate = new Date().toISOString().split('T')[0];
+    const defaultStartDate = new Date();
+    defaultStartDate.setFullYear(defaultStartDate.getFullYear() - 1);
+    setStartDate(defaultStartDate.toISOString().split('T')[0]);
+    setEndDate(defaultEndDate);
+  }, []);
 
-const MyCreatedIncidents = () => {
-  const navigate = useNavigate();
-  const [incidents, setIncidents] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [noData, setNoData] = useState(false); // New state for no data
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 10,
-  });
-
-  const handleIncidentClick = (id) => {
-    navigate(`/incidents/${id}`);
-  };
-
-  const columns = [
-    {
-      field: 'ref_id',
-      headerName: 'Number',
-      width: 150,
-      renderCell: (params) => (
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            handleIncidentClick(params.row.id);
-          }}
-          className="incident-number"
-        >
-          {params.value}
-        </a>
-      ),
-    },
-    { field: 'title', headerName: 'Short Description', width: 150 },
-    { field: 'contact_display', headerName: 'Caller', width: 150 },
-    {
-      field: 'priority',
-      headerName: 'Priority',
-      width: 100,
-      renderCell: (params) => <PriorityBadge priority={params.value} />,
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 120,
-      renderCell: (params) => <StatusBadge status={params.value} />,
-    },
-    { field: 'category', headerName: 'Category', width: 150 },
-    { field: 'subcategory', headerName: 'Subcategory', width: 150 },
-    { field: 'assigned_to_display', headerName: 'Assigned To', width: 150 },
-    { field: 'created_by', headerName: 'Created By', width: 100 },
-    { field: 'formattedStartDate', headerName: 'Opened', width: 100 },
-    { field: 'formattedLastUpdate', headerName: 'Updated On', width: 180 },
-  ];
-
-  const fetchMyAssignedIncidents = async () => {
+  const fetchIncidents = async () => {
     try {
+      setLoading(true);
       const contactId = localStorage.getItem('contact_id');
       if (!contactId) {
         throw new Error('Contact ID not found in local storage');
       }
-  
-      const usersResponse = await AxiosInstance.get(
-        'http://10.100.130.76:3000/user/?skip=0&limit=10'
-      );
-  
-      const currentUser = usersResponse.data.find(
-        (user) => user.contact_id === parseInt(contactId)
-      );
-  
-      if (!currentUser) {
-        throw new Error('User not found for the given contact ID');
+
+      const skip = page * rowsPerPage;
+
+      const queryParams = new URLSearchParams({
+        skip: String(skip),
+        limit: String(rowsPerPage),
+        view_type: 'detailed',
+        created_by: contactId,
+      });
+
+      if (startDate) queryParams.append('start_date', startDate);
+      if (endDate) queryParams.append('end_date', endDate);
+      if (selectedStatuses.length) {
+        const statusNames = statuses
+          .filter(s => selectedStatuses.includes(s.id))
+          .map(s => s.name)
+          .join(',');
+        queryParams.append('status', statusNames);
       }
-  
-      const incidentsResponse = await AxiosInstance.get(
-        `http://10.100.130.76:3000/api/v1/incidents/incidents_details?skip=${paginationModel.page * paginationModel.pageSize}&limit=${paginationModel.pageSize}&created_by=${contactId}`
+
+      const response = await AxiosInstance.get(
+        `http://10.100.130.76:3000/api/v1/incidents/incidents_details?${queryParams.toString()}`
       );
-  
-      const { data, total_records } = incidentsResponse.data;
-  
-      if (data.length === 0) {
-        setNoData(true);
-      } else {
-        setNoData(false);
-  
-        const formattedData = data.map((incident) => ({
+
+      const { data: incidentData, total_records } = response.data;
+
+      setIncidents(
+        incidentData.map((incident) => ({
           ...incident,
-          id: incident.id,
           formattedStartDate: incident.start_date
             ? new Date(incident.start_date).toLocaleString()
             : '',
           formattedLastUpdate: incident.last_update
             ? new Date(incident.last_update).toLocaleString()
             : '',
-        }));
-  
-        setIncidents(formattedData);
-      }
-  
-      setIsLoading(false);
+        }))
+      );
+
+      setTotalRecords(total_records);
     } catch (error) {
-      if (error.response && error.response.status === 404) {
-        setError(error.response.data.detail || 'No incidents found');
-      } else {
-        setError(error.message || 'Failed to load incident data');
-      }
-      setIsLoading(false);
+      console.error('Failed to fetch incidents:', error);
+    } finally {
+      setLoading(false);
     }
-  };  
-  
+  };
 
   useEffect(() => {
-    fetchMyAssignedIncidents();
-  }, [paginationModel.page, paginationModel.pageSize]);
+    fetchIncidents();
+  }, [page, rowsPerPage, startDate, endDate, selectedStatuses]);
 
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        {/* <AlertTitle>Error</AlertTitle> */}
-        {error}
-      </Alert>
-    );
-  }
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (event) => {
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
+    setPage(0);
+  };
+
+  const handleStatusChange = (event) => {
+    const newValue = Array.isArray(event) ? event : event.target.value;
+    setSelectedStatuses(newValue);
+    setPage(0);
+  };
+
+  const handleDownload = () => {
+    const worksheet = XLSX.utils.json_to_sheet(incidents);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Created Incidents');
+    XLSX.writeFile(workbook, `created_incidents_${new Date().toISOString()}.xlsx`);
+  };
 
   return (
-    <Box>
-          <h2 style={{ margin: "0 0 16px 0", color: 'Black' }}>My Created Incidents</h2>
-    <Box className="my-assigned-incidents-container">
-      {/* <h3 style={{ margin: '16px 0', color: 'Black' }}>My Assigned Incidents</h3> */}
-      {noData ? (
-        <Alert Warning="info" sx={{ mb: 2 }}>
-          <AlertTitle>Info</AlertTitle>
-          No incidents found for the current user.
-        </Alert>
-      ) : (
-        <Paper className="my-assigned-incidents-paper">
-          <DataGrid
-            rows={incidents}
-            columns={columns}
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-            pageSizeOptions={[5, 10, 25, 50, 100]}
-            disableRowSelectionOnClick
-            checkboxSelection={false}
-            loading={isLoading}
-            className="my-assigned-incidents-grid"
-            sx={{
-              border: 'none',
-              overflow: 'auto',
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: '#f1f5f9',
-                color: '#475569',
-                borderBottom: '1px solid #e2e8f0',
-                fontWeight: 700,
-              },
-              '& .MuiDataGrid-cell': {
-                padding: '12px',
-                borderBottom: '1px solid #e2e8f0',
-                whiteSpace: 'nowrap',
-              },
-              '& .MuiDataGrid-row:hover': {
-                backgroundColor: '#f9fafb',
-              },
-              '& .MuiDataGrid-virtualScroller': {
-                overflowX: 'auto',
-              },
-            }}
+    <>
+    <h2 style={{ margin: "0 0 10px 0", color: 'Black' }}>
+                Incidents Created by me
+                <span style={{ 
+                  marginLeft: '10px', 
+                  backgroundColor: '#f0f0f0', 
+                  padding: '2px 1px', 
+                  borderRadius: '12px', 
+                  fontSize: '0.8em' 
+                }}>
+                  {/* {incidentStatus}- {incidentCount} */}
+                </span>
+              </h2>
+    <Box sx={{ height: '85vh', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5', width: '95rem' }}>
+      <Paper sx={{ borderRadius: '8px' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', m: 2 }}>
+          <TableToolBar
+            columnVisibility={columnVisibility}
+            headCells={headCells}
+            onColumnVisibilityChange={setColumnVisibility}
+            startDate={startDate}
+            onStartDateChange={setStartDate}
+            endDate={endDate}
+            onEndDateChange={setEndDate}
+            statuses={statuses}
+            selectedStatuses={selectedStatuses}
+            onStatusChange={handleStatusChange}
           />
-        </Paper>
-      )}
-    </Box>
-    </Box>
-  );
-};
+          <Button
+            variant="contained"
+            onClick={handleDownload}
+            sx={{
+              height: '3rem',
+              bgcolor: '#2C952C',
+              '&:hover': { bgcolor: '#228B22' },
+            }}
+          >
+            Download
+          </Button>
+        </Box>
+      </Paper>
 
-export default MyCreatedIncidents;
+      <TableContainer
+        component={Paper}
+        sx={{
+          flex: 1,
+          borderRadius: '8px',
+          '& .MuiTable-root': {
+            borderCollapse: 'separate',
+            borderSpacing: '0',
+          },
+          height: '70vh',
+        }}
+      >
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              {headCells.map((cell) =>
+                columnVisibility[cell.id] && (
+                  <TableCell
+                    key={cell.id}
+                    sx={{
+                      width: cell.width,
+                      bgcolor: '#1976d2',
+                      borderBottom: '2px solid #e0e0e0',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      whiteSpace: 'nowrap',
+                      padding: '12px 16px',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        bgcolor: '#1565c0',
+                      },
+                    }}
+                    onClick={() => handleRequestSort(cell.id)}
+                  >
+                    {cell.label}
+                  </TableCell>
+                )
+              )}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {incidents.map((row) => (
+              <TableRow
+                key={row.id}
+                onClick={() => navigate(`/incidents/${row.id}`)}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': {
+                    bgcolor: '#f5f5f5',
+                  },
+                }}
+              >
+                {headCells.map((cell) =>
+                  columnVisibility[cell.id] && (
+                    <TableCell
+                      key={cell.id}
+                      sx={{
+                        padding: '12px 16px',
+                        borderBottom: '1px solid #e0e0e0',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: cell.width,
+                      }}
+                    >
+                      {cell.id === 'status' ? (
+                        <StatusBadge status={row[cell.id]} />
+                      ) : cell.id === 'priority' ? (
+                        <PriorityBadge priority={row[cell.id]} />
+                      ) : (
+                        row[cell.id]
+                      )}
+                    </TableCell>
+                  )
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <TablePagination
+        component="div"
+        count={totalRecords}
+        page={page}
+        onPageChange={handlePageChange}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleRowsPerPageChange}
+        rowsPerPageOptions={[25, 50, 100]}
+        sx={{
+          mt: 2,
+          borderRadius: '8px',
+          '& .MuiTablePagination-select': {
+            marginRight: 2,
+          },
+        }}
+      />
+    </Box>
+    </>
+  );
+}

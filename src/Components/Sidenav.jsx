@@ -104,6 +104,7 @@ export default function Sidenav() {
           ] : []),
           { text: "Assigned Incidents", icon: <ListIcon />, path: "/incident/assigned" },
           { text: "My Incidents", icon: <ListIcon />, path: "/incident/my" },
+          { text: "Reports", icon: <DashboardIcon />, path: "/reports" },
         ],
       },
       {
@@ -121,6 +122,7 @@ export default function Sidenav() {
           { text: "Assign Assets", icon: <AddCircleOutlineIcon />, path: "/assets/assign" },
         ],
       },
+      // { text: "Reports", icon: <DashboardIcon />, path: "/reports" },
     ];
     
     setMenuItems(items);

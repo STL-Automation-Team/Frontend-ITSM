@@ -47,12 +47,12 @@ export default function IncidentHome() {
         {!isUserRole && (
           <>
             <Box>
-              <h2 style={{ margin: "0 0 16px 0", color: 'Black' }}>
+              <h2 style={{ margin: "0 0 10px 0", color: 'Black' }}>
                 All Incidents 
                 <span style={{ 
                   marginLeft: '10px', 
                   backgroundColor: '#f0f0f0', 
-                  padding: '2px 8px', 
+                  padding: '2px 1px', 
                   borderRadius: '12px', 
                   fontSize: '0.8em' 
                 }}>

@@ -25,6 +25,7 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
   };
 
   const fetchcomments = async () => {
+    
     try {
       const response = await AxiosInstance.get(`http://10.100.130.76:3000/public_log/`, {
         params: {
@@ -34,16 +35,18 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
         }
       });
       setComments(response.data);
+      console.log('responseData',response.data);
     } catch (error) {
       console.error('Error fetching comments:', error);
     }
   };
-
   
   useEffect(() => {
     fetchcomments();
     fetchLogs();
   }, [incidentId]);
+
+  console.log("hi",comments);
 
   // Optionally, add a method to trigger logs refresh when incident is updated
   useEffect(() => {
@@ -79,17 +82,22 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
         user_id: currentUser.id,
         // contact_name: name
       };
+      console.log('newComment',newComment);
       
       const postResponse = await AxiosInstance.post('http://10.100.130.76:3000/public_log/', newComment);
       if (postResponse.data) {
         setComment('');
         const newComments = [...comments, postResponse.data];
+        console.log('newComments ->',newComment);
         setComments(newComments);
+        fetchcomments();
       }
     } catch (error) {
       console.error('Error posting comment:', error);
     }
   };
+
+  
 
   const formatCommentMessage = (comment) => {
     return (
@@ -97,16 +105,18 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
         sx={{
           mb: 2,
           p: 2,
-          bgcolor: 'grey.100',
+          bgcolor: 'lightblue',
           borderRadius: 1,
           boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
         }}
       >
         <Typography variant="subtitle2">{comment.contact_name}</Typography>
+        
         <Typography>{comment.description}</Typography>
         <Typography variant="caption">
           {new Date(comment.created_time).toLocaleString()}
         </Typography>
+        <Typography>User : {comment.username}</Typography>
       </Box>
     );
   };
@@ -145,6 +155,20 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
       </Box>
       
       <TabPanel value="1">
+      <TextField
+          fullWidth
+          multiline
+          rows={2}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Add your comment..."
+        />
+
+        <Box mt={1}>
+          <Button variant="contained" onClick={handleCommentSubmit} sx={{marginBottom:'5px'}}>
+            Save
+          </Button>
+        </Box>
         <Box mb={2}>
           {comments.map((comment, index) => (
             <React.Fragment key={index}>
@@ -153,19 +177,8 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
           ))}
         </Box>
 
-        <TextField
-          fullWidth
-          multiline
-          rows={4}
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder="Add your comment..."
-        />
-        <Box mt={1}>
-          <Button variant="contained" onClick={handleCommentSubmit}>
-            Save
-          </Button>
-        </Box>
+        
+        
       </TabPanel>
       
       <TabPanel value="2">

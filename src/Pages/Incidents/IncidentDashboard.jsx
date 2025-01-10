@@ -91,7 +91,7 @@ export default function IncidentDashboard() {
       const response = await AxiosInstance.get(`/incidents/incidents_details`, {
         params: {
           skip: 0,
-          limit: 10,
+          limit: 300,
           status: status,
           start_date: startDate,
           end_date: endDate
@@ -300,7 +300,7 @@ export default function IncidentDashboard() {
   
       <Box sx={{ '& > *': { mb: 2 } }}>
         <DashboardCards cards={getCardData()} />
-        <IncidentAgingTable />
+        {/* <IncidentAgingTable /> */}
         {/* {incidentsData && servicesData && (
           <DashboardGraphs
             incidentsData={incidentsData}

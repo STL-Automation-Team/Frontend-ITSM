@@ -94,12 +94,16 @@ const LoginPage = () => {
           navigate('/incident/dashboard');
         }, 1500);
       } else {
-        setMessage({ type: "error", content: data.message || "Login failed. Please try again." });
+        // Extract and display the error message from the "detail" field if it exists
+        const errorMessage = data.detail || data.message || "Login failed. Please try again.";
+        setMessage({ type: "error", content: errorMessage });
       }
     } catch (error) {
+      // Handle network or unexpected errors
       setMessage({ type: "error", content: "An error occurred. Please try again later." });
     }
   };
+  
   
 
   const handleCloseSnackbar = () => {

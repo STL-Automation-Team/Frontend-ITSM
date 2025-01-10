@@ -12,6 +12,7 @@ import { ProtectedRoute } from './Components/AuthProvider';
 import MyCreatedIncidents from './Pages/Incidents/MyCreatedIncidents';
 import MyAssignedIncidents from './Pages/Incidents/MyAssignedIncidents';
 import IncidentDashboard from './Pages/Incidents/IncidentDashboard';
+import Reports from './Pages/Reports';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
                   <Route path="/incident/create" element={<ProtectedRoute><AddIncident /></ProtectedRoute>} />
                   <Route path="/incidents/:id" element={<ProtectedRoute><ViewIncidentDetails /></ProtectedRoute>} />
                   <Route path="/incident/dashboard" element={<ProtectedRoute>< IncidentDashboard/></ProtectedRoute>} />
+                  <Route path="/reports" element={<ProtectedRoute>< Reports/></ProtectedRoute>} />
                 </Routes>
               </Layout>
             

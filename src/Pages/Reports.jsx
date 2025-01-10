@@ -11,24 +11,33 @@ import {
   TablePagination,
   Paper,
   Button,
+  FormControl,
+  Select,
+  MenuItem,
+  TextField,
+  Chip,
+  InputLabel,
+  Checkbox,
+  ListItemText,
+  Collapse,
 } from '@mui/material';
 import * as XLSX from 'xlsx';
-import AxiosInstance from '../../Components/AxiosInstance';
-import './ViewIncident.css';
-import TableToolBar from './TableToolbar';
+import AxiosInstance from '../Components/AxiosInstance';
+// import './ViewIncident.css';
+import TableToolBar from './Incidents/TableToolbar';
 
 const headCells = [
-  { id: 'ref_id', label: 'Number', width: '150px' },
-  { id: 'contact_display', label: 'User', width: '150px' },
-  { id: 'title', label: 'Title', width: '150px' },
-  { id: 'priority', label: 'Priority', width: '150px' },
-  { id: 'status', label: 'Status', width: '150px' },
-  { id: 'category', label: 'Category', width: '150px' },
-  { id: 'subcategory', label: 'Subcategory', width: '150px' },
-  { id: 'assigned_to_display', label: 'Assigned To', width: '150px' },
-  { id: 'created_by', label: 'Created By', width: '150px' },
-  { id: 'formattedStartDate', label: 'Opened', width: '150px' },
-  { id: 'formattedLastUpdate', label: 'Updated On', width: '150px' },
+  { id: 'ref_id', label: 'Number',width:'150px' },
+  { id: 'title', label: 'Title', width:'150px' },
+  { id: 'contact_display', label: 'Caller',width:'150px' },
+  { id: 'priority', label: 'Priority',width:'150px' },
+  { id: 'status', label: 'Status',width:'150px' },
+  { id: 'category', label: 'Category',width:'150px' },
+  { id: 'subcategory', label: 'Subcategory', width:'150px' },
+  { id: 'assigned_to_display', label: 'Assigned To',width:'150px' },
+  { id: 'created_by', label: 'Created By',width:'150px' },
+  { id: 'formattedStartDate', label: 'Opened',width:'150px' },
+  { id: 'formattedLastUpdate', label: 'Updated On',width:'150px' },
 ];
 
 const StatusBadge = ({ status }) => (
@@ -39,7 +48,7 @@ const PriorityBadge = ({ priority }) => (
   <span className={`priority-badge ${priority?.toLowerCase()}`}>{priority}</span>
 );
 
-export default function MyAssignedIncidents() {
+export default function Reports() {
   const navigate = useNavigate();
   const [incidents, setIncidents] = useState([]);
   const [order, setOrder] = useState('asc');
@@ -51,7 +60,6 @@ export default function MyAssignedIncidents() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [totalRecords, setTotalRecords] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [columnVisibility, setColumnVisibility] = useState(
     headCells.reduce((acc, cell) => {
       acc[cell.id] = true;
@@ -73,12 +81,6 @@ export default function MyAssignedIncidents() {
   }, []);
 
   useEffect(() => {
-    if (statuses.length > 0) {
-      setSelectedStatuses(statuses.map(s => s.id));
-    }
-  }, [statuses]);
-
-  useEffect(() => {
     const defaultEndDate = new Date().toISOString().split('T')[0];
     const defaultStartDate = new Date();
     defaultStartDate.setFullYear(defaultStartDate.getFullYear() - 1);
@@ -88,31 +90,10 @@ export default function MyAssignedIncidents() {
 
   const fetchIncidents = async () => {
     try {
-      setLoading(true);
-      const contactId = localStorage.getItem('contact_id');
-      if (!contactId) {
-        throw new Error('Contact ID not found in local storage');
-      }
-
-      const usersResponse = await AxiosInstance.get(
-        'http://10.100.130.76:3000/user/?skip=0&limit=10'
-      );
-
-      const currentUser = usersResponse.data.find(
-        (user) => user.contact_id === parseInt(contactId)
-      );
-
-      if (!currentUser) {
-        throw new Error('User not found for the given contact ID');
-      }
-
-      const skip = page * rowsPerPage;
-
       const queryParams = new URLSearchParams({
-        skip: String(skip),
+        skip: String(page * rowsPerPage),
         limit: String(rowsPerPage),
         view_type: 'detailed',
-        assigned_to: currentUser.id,
       });
 
       if (startDate) queryParams.append('start_date', startDate);
@@ -130,7 +111,6 @@ export default function MyAssignedIncidents() {
       );
 
       const { data: incidentData, total_records } = response.data;
-
       setIncidents(
         incidentData.map((incident) => ({
           ...incident,
@@ -142,14 +122,12 @@ export default function MyAssignedIncidents() {
             : '',
         }))
       );
-
       setTotalRecords(total_records);
     } catch (error) {
       console.error('Failed to fetch incidents:', error);
-    } finally {
-      setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchIncidents();
@@ -161,50 +139,42 @@ export default function MyAssignedIncidents() {
     setOrderBy(property);
   };
 
-  const handlePageChange = (event, newPage) => {
-    setPage(newPage);
-  };
+  const handleChangePage = (_, newPage) => setPage(newPage);
 
-  const handleRowsPerPageChange = (event) => {
-    const newRowsPerPage = parseInt(event.target.value, 10);
-    setRowsPerPage(newRowsPerPage);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
   const handleStatusChange = (event) => {
+    // Check if event is an array (direct update from child) or a select event
     const newValue = Array.isArray(event) ? event : event.target.value;
     setSelectedStatuses(newValue);
-    setPage(0);
   };
+  
+
 
   const handleDownload = () => {
     const worksheet = XLSX.utils.json_to_sheet(incidents);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Assigned Incidents');
-    XLSX.writeFile(workbook, `assigned_incidents_${new Date().toISOString()}.xlsx`);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Incidents');
+    XLSX.writeFile(workbook, `incidents_${new Date().toISOString()}.xlsx`);
   };
 
+
   return (
-    <>
-    <h2 style={{ margin: "0 0 10px 0", color: 'Black' }}>
-                Incidents Assigned to me
-                <span style={{ 
-                  marginLeft: '10px', 
-                  backgroundColor: '#f0f0f0', 
-                  padding: '2px 1px', 
-                  borderRadius: '12px', 
-                  fontSize: '0.8em' 
-                }}>
-                  {/* {incidentStatus}- {incidentCount} */}
-                </span>
-              </h2>
-    <Box sx={{ height: '85vh', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5', width: '95rem' }}>
+    <Box sx={{ height: '85vh', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5', width:'95rem' }}>
+      
       <Paper sx={{ borderRadius: '8px' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', m: 2 }}>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'space-between',m:2 }}>
           <TableToolBar
             columnVisibility={columnVisibility}
             headCells={headCells}
-            onColumnVisibilityChange={setColumnVisibility}
+            onColumnVisibilityChange={(event) => {
+              const { value, checked } = event.target;
+              setColumnVisibility(prev => ({ ...prev, [value]: checked }));
+            }}
             startDate={startDate}
             onStartDateChange={setStartDate}
             endDate={endDate}
@@ -213,51 +183,56 @@ export default function MyAssignedIncidents() {
             selectedStatuses={selectedStatuses}
             onStatusChange={handleStatusChange}
           />
-          <Button
-            variant="contained"
+          
+        </Box>
+      </Paper>
+      <Button 
+            variant="contained" 
+            width = '100%'
             onClick={handleDownload}
             sx={{
-              height: '3rem',
-              bgcolor: '#2C952C',
-              '&:hover': { bgcolor: '#228B22' },
+              display: 'flex',
+              bgcolor: '#1976d2',
+              alignItems: 'right',
+            //   justifyContent: 'right',
+              marginTop: '10px',
+              '&:hover': { bgcolor: '#1565c0' },
+              
             }}
           >
             Download
           </Button>
-        </Box>
-      </Paper>
 
-      <TableContainer
-        component={Paper}
-        sx={{
+      {/* <TableContainer 
+        component={Paper} 
+        sx={{ 
           flex: 1,
           borderRadius: '8px',
           '& .MuiTable-root': {
             borderCollapse: 'separate',
             borderSpacing: '0',
           },
-          height: '70vh',
+          height:'70vh',
         }}
       >
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              {headCells.map((cell) =>
+              {headCells.map((cell) => 
                 columnVisibility[cell.id] && (
                   <TableCell
                     key={cell.id}
                     sx={{
                       width: cell.width,
-                      bgcolor: '#1976d2',
+                      bgcolor: '#f5f5f5',
                       borderBottom: '2px solid #e0e0e0',
-                      color: 'white',
                       fontWeight: 'bold',
                       whiteSpace: 'nowrap',
                       padding: '12px 16px',
                       cursor: 'pointer',
                       '&:hover': {
-                        bgcolor: '#1565c0',
-                      },
+                        bgcolor: '#eeeeee'
+                      }
                     }}
                     onClick={() => handleRequestSort(cell.id)}
                   >
@@ -269,14 +244,14 @@ export default function MyAssignedIncidents() {
           </TableHead>
           <TableBody>
             {incidents.map((row) => (
-              <TableRow
+              <TableRow 
                 key={row.id}
                 onClick={() => navigate(`/incidents/${row.id}`)}
-                sx={{
+                sx={{ 
                   cursor: 'pointer',
                   '&:hover': {
-                    bgcolor: '#f5f5f5',
-                  },
+                    bgcolor: '#f5f5f5'
+                  }
                 }}
               >
                 {headCells.map((cell) =>
@@ -289,7 +264,7 @@ export default function MyAssignedIncidents() {
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        maxWidth: cell.width,
+                        maxWidth: cell.width
                       }}
                     >
                       {cell.id === 'status' ? (
@@ -306,25 +281,23 @@ export default function MyAssignedIncidents() {
             ))}
           </TableBody>
         </Table>
-      </TableContainer>
-
-      <TablePagination
-        component="div"
+      </TableContainer> */}
+      {/* <TablePagination
+        component={Paper}
         count={totalRecords}
         page={page}
-        onPageChange={handlePageChange}
+        onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleRowsPerPageChange}
-        rowsPerPageOptions={[25, 50, 100]}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        rowsPerPageOptions={[10, 25, 50]}
         sx={{
           mt: 2,
           borderRadius: '8px',
           '& .MuiTablePagination-select': {
-            marginRight: 2,
-          },
+            marginRight: 2
+          }
         }}
-      />
+      /> */}
     </Box>
-    </>
   );
 }

@@ -369,7 +369,7 @@ const IncidentForm = ({ onSubmit }) => {
     label,
     name,
     component,
-    required = false,
+    required = true,
     tooltip = null
   ) => (
     <Grid item xs={12} sm={6} container spacing={1}>
@@ -431,7 +431,9 @@ const IncidentForm = ({ onSubmit }) => {
               onChange={handleInputChange}
               sx={inputStyle}
               defaultValue="New"
+              true
             >
+              
               {statuses.map((status) => (
                 <MenuItem key={status.id} value={status.name}>
                   {status.name}
@@ -549,7 +551,7 @@ const IncidentForm = ({ onSubmit }) => {
         )}
 
         {/* CC Field */}
-        {renderFormField(
+        {/* {renderFormField(
           "CC",
           "cc",
           <TextField
@@ -569,7 +571,7 @@ const IncidentForm = ({ onSubmit }) => {
               ),
             }}
           />
-        )}
+        )} */}
 
         {/* Title */}
         {renderFormField(
@@ -587,8 +589,31 @@ const IncidentForm = ({ onSubmit }) => {
           true
         )}
 
+
+        {renderFormField(
+          "Description",
+          "description",
+          <TextField
+            fullWidth
+            multiline
+            minRows={3}
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            // placeholder="Describe incident (Min. 20 words)"
+            sx={{
+              ...inputStyle,
+              "& .MuiInputBase-root": {
+                height: "auto",
+                backgroundColor: "#f9fafb",
+              },
+            }}
+          />,
+          true
+        )}
+
         {/* Description */}
-        <Grid item xs={12}>
+        {/* <Grid item xs={12}>
           <Typography sx={labelStyle}>Description</Typography>
           <TextField
             fullWidth
@@ -597,7 +622,8 @@ const IncidentForm = ({ onSubmit }) => {
             name="description"
             value={formData.description}
             onChange={handleInputChange}
-            placeholder="Minimum 50 words"
+            // placeholder="Minimum 50 words"
+            required
             sx={{
               ...inputStyle,
               "& .MuiInputBase-root": {
@@ -606,7 +632,7 @@ const IncidentForm = ({ onSubmit }) => {
               },
             }}
           />
-        </Grid>
+        </Grid> */}
 
         {/* Attachment */}
         <Grid item xs={12}>

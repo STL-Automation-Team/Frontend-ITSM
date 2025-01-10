@@ -1,338 +1,298 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { DataGrid } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
-import Box from "@mui/material/Box";
-import Alert from "@mui/material/Alert";
-import AlertTitle from "@mui/material/AlertTitle";
-import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
-import * as XLSX from "xlsx";
-import AxiosInstance from "../../Components/AxiosInstance";
-import "./ViewIncident.css";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Paper,
+  Button,
+} from '@mui/material';
+import * as XLSX from 'xlsx';
+import AxiosInstance from '../../Components/AxiosInstance';
+import './ViewIncident.css';
+import TableToolBar from './TableToolbar';
 
-const StatusBadge = ({ status }) => {
-  const getStatusStyle = () => {
-    switch (status?.toLowerCase()) {
-      case "new":
-        return "status-badge new";
-      case "in-progress":
-        return "status-badge in-progress";
-      case "on hold":
-        return "status-badge on-hold";
-      case "verified":
-        return "status-badge verified";
-      case "resolve":
-        return "status-badge resolve";
-        case "close":
-          return "status-badge close";
-      default:
-        return "status-badge default";
-    }
-  };
+const headCells = [
+  { id: 'ref_id', label: 'Number', width: '150px' },
+  { id: 'contact_display', label: 'User', width: '150px' },
+  { id: 'title', label: 'Title', width: '150px' },
+  { id: 'priority', label: 'Priority', width: '150px' },
+  { id: 'status', label: 'Status', width: '150px' },
+  { id: 'category', label: 'Category', width: '150px' },
+  { id: 'subcategory', label: 'Subcategory', width: '150px' },
+  { id: 'assigned_to_display', label: 'Assigned To', width: '150px' },
+  { id: 'created_by', label: 'Created By', width: '150px' },
+  { id: 'formattedStartDate', label: 'Opened', width: '150px' },
+  { id: 'formattedLastUpdate', label: 'Updated On', width: '150px' },
+];
 
-  return <span className={getStatusStyle()}>{status}</span>;
-};
+const StatusBadge = ({ status }) => (
+  <span className={`status-badge ${status?.toLowerCase()}`}>{status}</span>
+);
 
-const PriorityBadge = ({ priority }) => {
-  const getPriorityStyle = () => {
-    switch (priority?.toLowerCase()) {
-      case "high":
-        return "priority-badge high";
-      case "critical":
-        return "priority-badge moderate";
-      case "low":
-        return "priority-badge low";
-      default:
-        return "priority-badge default";
-    }
-  };
+const PriorityBadge = ({ priority }) => (
+  <span className={`priority-badge ${priority?.toLowerCase()}`}>{priority}</span>
+);
 
-  return <span className={getPriorityStyle()}>{priority}</span>;
-};
-
-const ViewIncident = ({ highlightedRefId }) => {
+export default function ViewIncident() {
   const navigate = useNavigate();
   const [incidents, setIncidents] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const highlightedRowRef = useRef(null);
-  const [error, setError] = useState(null);
-  const [filteredRows, setFilteredRows] = useState([]);
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 50,
-  });
-
-  const handleIncidentClick = (id) => {
-    navigate(`/incidents/${id}`);
-  };
-
-  const handleDownload = () => {
-    // Use filteredRows if available, otherwise use all incidents
-    const dataToDownload = filteredRows.length > 0 ? filteredRows : incidents;
-    
-    // Convert the filtered incidents into a format suitable for Excel
-    const worksheet = XLSX.utils.json_to_sheet(dataToDownload);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Incidents");
-
-    // Trigger download
-    XLSX.writeFile(workbook, `incidents_${new Date().toISOString()}.xlsx`);
-  };
-
-
-  const columns = [
-    {
-      field: "ref_id",
-      headerName: "Number",
-      width: 150,
-      renderCell: (params) => (
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            handleIncidentClick(params.row.id);
-          }}
-          className="incident-number"
-          ref={params.value === highlightedRefId ? highlightedRowRef : null}
-        >
-          {params.value}
-        </a>
-      ),
-      cellClassName: (params) =>
-        params.value === highlightedRefId
-          ? "grid-cell-center highlighted"
-          : "grid-cell-center",
-    },
-    {
-      field: "title",
-      headerName: "Short Description",
-      width: 150,
-      cellClassName: "grid-cell-center",
-    },
-    {
-      field: "contact_display",
-      headerName: "Caller",
-      width: 150,
-      cellClassName: "grid-cell-center",
-    },
-    {
-      field: "priority",
-      headerName: "Priority",
-      width: 100,
-      renderCell: (params) => <PriorityBadge priority={params.value} />,
-      cellClassName: "grid-cell-center",
-    },
-    {
-      field: "status",
-      headerName: "Status",
-      width: 120,
-      renderCell: (params) => <StatusBadge status={params.value} />,
-      cellClassName: "grid-cell-center",
-    },
-    {
-      field: "category",
-      headerName: "Category",
-      width: 150,
-      cellClassName: "grid-cell-center",
-    },
-    {
-      field: "subcategory",
-      headerName: "Subcategory",
-      width: 150,
-      cellClassName: "grid-cell-center",
-    },
-    {
-      field: "assigned_to_display",
-      headerName: "Assigned To",
-      width: 150,
-      cellClassName: "grid-cell-center",
-    },
-    {
-      field: "created_by",
-      headerName: "Created By",
-      width: 100,
-      cellClassName: "grid-cell-center",
-    },
-    {
-      field: "formattedStartDate",
-      headerName: "Opened",
-      width: 100,
-      cellClassName: "grid-cell-center",
-    },
-    {
-      field: "formattedLastUpdate",
-      headerName: "Updated On",
-      width: 180,
-      cellClassName: "grid-cell-center",
-    },
-  ];
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('ref_id');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
+  const [statuses, setStatuses] = useState([]);
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [columnVisibility, setColumnVisibility] = useState(
+    headCells.reduce((acc, cell) => {
+      acc[cell.id] = true;
+      return acc;
+    }, {})
+  );
 
   useEffect(() => {
-    fetchIncidents();
+    const fetchStatuses = async () => {
+      try {
+        const response = await AxiosInstance.get('http://10.100.130.76:3000/api/v1/statuses');
+        setStatuses(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch statuses:', error);
+      }
+    };
+
+    fetchStatuses();
   }, []);
 
   useEffect(() => {
-    if (highlightedRefId && highlightedRowRef.current) {
-      highlightedRowRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+    if (statuses.length > 0) {
+      setSelectedStatuses(statuses.map(s => s.id));
     }
-  }, [highlightedRefId, incidents]);
-
+  }, [statuses]);
 
   useEffect(() => {
-    if (highlightedRefId && highlightedRowRef.current) {
-      highlightedRowRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }
-  }, [highlightedRefId, incidents]);
+    const defaultEndDate = new Date().toISOString().split('T')[0];
+    const defaultStartDate = new Date();
+    defaultStartDate.setFullYear(defaultStartDate.getFullYear() - 1);
+    setStartDate(defaultStartDate.toISOString().split('T')[0]);
+    setEndDate(defaultEndDate);
+  }, []);
 
   const fetchIncidents = async () => {
     try {
+      setLoading(true);
+      const skip = page * rowsPerPage;
+
+      const queryParams = new URLSearchParams({
+        skip: String(skip),
+        limit: String(rowsPerPage),
+        view_type: 'detailed',
+      });
+
+      if (startDate) queryParams.append('start_date', startDate);
+      if (endDate) queryParams.append('end_date', endDate);
+      if (selectedStatuses.length) {
+        const statusNames = statuses
+          .filter(s => selectedStatuses.includes(s.id))
+          .map(s => s.name)
+          .join(',');
+        queryParams.append('status', statusNames);
+      }
+
       const response = await AxiosInstance.get(
-        `http://10.100.130.76:3000/api/v1/incidents/incidents_details?skip=${
-          paginationModel.page * paginationModel.pageSize
-        }&limit=${paginationModel.pageSize}`
+        `http://10.100.130.76:3000/api/v1/incidents/incidents_details?${queryParams.toString()}`
       );
 
-      const { data: incidentData } = response.data;
+      const { data: incidentData, total_records } = response.data;
 
-      if (Array.isArray(incidentData)) {
-        const formattedData = incidentData.map((incident) => ({
+      setIncidents(
+        incidentData.map((incident) => ({
           ...incident,
           formattedStartDate: incident.start_date
             ? new Date(incident.start_date).toLocaleString()
-            : "",
+            : '',
           formattedLastUpdate: incident.last_update
             ? new Date(incident.last_update).toLocaleString()
-            : "",
-        }));
+            : '',
+        }))
+      );
 
-        setIncidents(formattedData);
-      } else {
-        console.error("Unexpected data format:", incidentData);
-        setError("Unexpected data format received from API");
-      }
-
-      setIsLoading(false);
+      setTotalRecords(total_records);
     } catch (error) {
-      console.error("Error fetching incidents:", error);
-      setError("Failed to load incident data");
-      setIsLoading(false);
+      console.error('Failed to fetch incidents:', error);
+    } finally {
+      setLoading(false);
     }
   };
-  
 
   useEffect(() => {
     fetchIncidents();
-  }, [paginationModel.page, paginationModel.pageSize]);
+  }, [page, rowsPerPage, startDate, endDate, selectedStatuses]);
 
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        <AlertTitle>Error</AlertTitle>
-        {error}
-      </Alert>
-    );
-  }
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
 
-  // console.log("bye",incidents);
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleRowsPerPageChange = (event) => {
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
+    setPage(0);
+  };
+
+  const handleStatusChange = (event) => {
+    const newValue = Array.isArray(event) ? event : event.target.value;
+    setSelectedStatuses(newValue);
+    setPage(0); // Reset to first page when filters change
+  };
+
+  const handleDownload = () => {
+    const worksheet = XLSX.utils.json_to_sheet(incidents);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Incidents');
+    XLSX.writeFile(workbook, `incidents_${new Date().toISOString()}.xlsx`);
+  };
+
   return (
-    <Box className="incidents-container">
-      <Paper className="incidents-paper">
-      <Button
+    <Box sx={{ height: '85vh', display: 'flex', flexDirection: 'column', bgcolor: '#f5f5f5', width: '95rem' }}>
+      <Paper sx={{ borderRadius: '8px' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', m: 2 }}>
+          <TableToolBar
+            columnVisibility={columnVisibility}
+            headCells={headCells}
+            onColumnVisibilityChange={setColumnVisibility}
+            startDate={startDate}
+            onStartDateChange={setStartDate}
+            endDate={endDate}
+            onEndDateChange={setEndDate}
+            statuses={statuses}
+            selectedStatuses={selectedStatuses}
+            onStatusChange={handleStatusChange}
+          />
+          <Button
             variant="contained"
-            color="primary"
             onClick={handleDownload}
+            sx={{
+              height: '3rem',
+              bgcolor: '#2C952C',
+              '&:hover': { bgcolor: '#228B22' },
+            }}
           >
             Download
           </Button>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          
         </Box>
-        <DataGrid
-          rows={incidents}
-          columns={columns}
-          paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
-          pageSizeOptions={[5, 10, 25, 50, 100]}
-          disableRowSelectionOnClick
-          checkboxSelection={false}
-          loading={isLoading}
-          className="incidents-grid"
-          getRowClassName={(params) =>
-            params.row.ref_id === highlightedRefId ? "highlighted-row" : ""
-          }
-          onFilterModelChange={(model) => {
-            // Get the filtered rows using the built-in filtering of DataGrid
-            const gridFilterModel = model;
-            if (!gridFilterModel.items || gridFilterModel.items.length === 0) {
-              setFilteredRows([]); // Reset filtered rows when no filters are applied
-              return;
-            }
-
-            // Apply filters manually to get filtered rows
-            const filtered = incidents.filter((row) => {
-              return gridFilterModel.items.every((filterItem) => {
-                if (!filterItem.field || !filterItem.operator || !filterItem.value) {
-                  return true;
-                }
-
-                const cellValue = row[filterItem.field];
-                const filterValue = filterItem.value;
-
-                switch (filterItem.operator) {
-                  case 'equals':
-                    return cellValue?.toString().toLowerCase() === filterValue?.toString().toLowerCase();
-                  case 'contains':
-                    return cellValue?.toString().toLowerCase().includes(filterValue?.toString().toLowerCase());
-                  // Add more operators as needed
-                  default:
-                    return true;
-                }
-              });
-            });
-            setFilteredRows(filtered);
-          }}
-          sx={{
-            border: "none",
-            height: "600px",
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: "#f1f5f9",
-              color: "#475569",
-              borderBottom: "1px solid #e2e8f0",
-              fontWeight: 700,
-            },
-            "& .MuiDataGrid-cell": {
-              padding: "12px",
-              borderBottom: "1px solid #e2e8f0",
-              whiteSpace: "nowrap",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-            },
-            "& .MuiDataGrid-row:hover": {
-              backgroundColor: "#f9fafb",
-            },
-            "& .MuiDataGrid-virtualScroller": {
-              overflowX: "auto",
-            },
-          }}
-        />
       </Paper>
+
+      <TableContainer
+        component={Paper}
+        sx={{
+          flex: 1,
+          borderRadius: '8px',
+          '& .MuiTable-root': {
+            borderCollapse: 'separate',
+            borderSpacing: '0',
+          },
+          height: '70vh',
+        }}
+      >
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              {headCells.map((cell) =>
+                columnVisibility[cell.id] && (
+                  <TableCell
+                    key={cell.id}
+                    sx={{
+                      width: cell.width,
+                      bgcolor: '#1976d2',
+                      borderBottom: '2px solid #e0e0e0',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      whiteSpace: 'nowrap',
+                      padding: '12px 16px',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        bgcolor: '#1565c0',
+                      },
+                    }}
+                    onClick={() => handleRequestSort(cell.id)}
+                  >
+                    {cell.label}
+                  </TableCell>
+                )
+              )}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {incidents.map((row) => (
+              <TableRow
+                key={row.id}
+                onClick={() => navigate(`/incidents/${row.id}`)}
+                sx={{
+                  cursor: 'pointer',
+                  '&:hover': {
+                    bgcolor: '#f5f5f5',
+                  },
+                }}
+              >
+                {headCells.map((cell) =>
+                  columnVisibility[cell.id] && (
+                    <TableCell
+                      key={cell.id}
+                      sx={{
+                        padding: '12px 16px',
+                        borderBottom: '1px solid #e0e0e0',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: cell.width,
+                      }}
+                    >
+                      {cell.id === 'status' ? (
+                        <StatusBadge status={row[cell.id]} />
+                      ) : cell.id === 'priority' ? (
+                        <PriorityBadge priority={row[cell.id]} />
+                      ) : (
+                        row[cell.id]
+                      )}
+                    </TableCell>
+                  )
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <TablePagination
+        component="div"
+        count={totalRecords}
+        page={page}
+        onPageChange={handlePageChange}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleRowsPerPageChange}
+        rowsPerPageOptions={[25, 50, 100]}
+        sx={{
+          mt: 2,
+          borderRadius: '8px',
+          '& .MuiTablePagination-select': {
+            marginRight: 2,
+          },
+        }}
+      />
     </Box>
   );
-};
-
-export default ViewIncident;
+}

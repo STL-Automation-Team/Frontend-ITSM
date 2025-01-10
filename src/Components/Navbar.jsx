@@ -74,11 +74,12 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function Navbar() {
+  const menuId = "primary-search-account-menu";
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
   const [userName, setUserName] = useState("");
-  const { userRoles } = useAuth(); // Fetch role from AuthProvider
-  const [role, setRole] = useState(userRoles.join(", ")); // Assuming multiple roles
+  const { userRoles } = useAuth();
+  const [role, setRole] = useState(userRoles.join(", "));
 
   const updateOpen = useAppStore((state) => state.updateOpen);
   const dopen = useAppStore((state) => state.dopen);
@@ -95,10 +96,10 @@ export default function Navbar() {
         try {
           const response = await AxiosInstance.get(`http://10.100.130.76:3000/contact/${contactId}`);
           console.log(response);
-          const userData = response.data.name; // Assuming the first result is correct
+          const userData = response.data.name;
           console.log(userData);
           if (userData) {
-            setUserName(userData); // Set the username from response
+            setUserName(userData);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -132,9 +133,32 @@ export default function Navbar() {
     } catch (error) {
       console.error("Logout failed:", error);
     }
+    handleMenuClose();
   };
 
-  const menuId = "primary-search-account-menu";
+  const renderMenu = (
+    <Menu
+      anchorEl={anchorEl}
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'right',
+      }}
+      id={menuId}
+      keepMounted
+      transformOrigin={{
+        vertical: 'top',
+        horizontal: 'right',
+      }}
+      open={isMenuOpen}
+      onClose={handleMenuClose}
+    >
+      <MenuItem onClick={handleLogout}>
+        <LogoutIcon sx={{ mr: 1 }} />
+        Logout
+      </MenuItem>
+    </Menu>
+  );
+
   console.log("hi",userName);
 
   return (
@@ -189,12 +213,12 @@ export default function Navbar() {
               onClick={handleProfileMenuOpen}
             >
               <UserAvatar sx={{marginRight:'1rem'}}>{userName.charAt(0).toUpperCase()}</UserAvatar>
-              
               <ArrowDropDownIcon sx={{ color: "black", ml: 0.5 }} />
             </Box>
           </Box>
         </Toolbar>
       </AppBar>
+      {renderMenu}
     </Box>
   );
 }
