@@ -434,7 +434,7 @@ const IncidentForm = ({ onSubmit }) => {
           <Autocomplete
             size="small"
             options={contacts}
-            getOptionLabel={(option) => option.name}
+            getOptionLabel={(option) => option.firstname}
             renderInput={(params) => (
               <TextField
                 {...params}

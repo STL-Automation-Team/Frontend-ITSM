@@ -276,9 +276,9 @@ export default function ViewIncident() {
           </TableBody>
         </Table>
       </TableContainer>
-
+      
       <TablePagination
-        component="div"
+        component={Paper}
         count={totalRecords}
         page={page}
         onPageChange={handlePageChange}
@@ -286,13 +286,15 @@ export default function ViewIncident() {
         onRowsPerPageChange={handleRowsPerPageChange}
         rowsPerPageOptions={[25, 50, 100]}
         sx={{
-          mt: 2,
+          mt: 3,
+          // backgroundColor:'white',
           borderRadius: '8px',
           '& .MuiTablePagination-select': {
             marginRight: 2,
           },
         }}
       />
+      
     </Box>
   );
 }

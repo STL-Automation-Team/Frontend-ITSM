@@ -22,10 +22,10 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ListIcon from "@mui/icons-material/List";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
-import ConstructionIcon from "@mui/icons-material/Construction";
-import PeopleIcon from "@mui/icons-material/People";
-import CategoryIcon from "@mui/icons-material/Category";
+import CreateIcon from '@mui/icons-material/Create';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import WorkOutlineIcon from '@mui/icons-material/WorkOutline';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import { useNavigate, useLocation } from "react-router-dom";
 import useAppStore from "../appStore";
 import { useAuth } from "./AuthProvider";
@@ -97,14 +97,30 @@ export default function Sidenav() {
         text: "Incident",
         icon: <WarningIcon />,
         subItems: [
-          { text: "Dashboard", icon: <AddCircleOutlineIcon />, path: "/incident/dashboard" },
-          { text: "Create Incident", icon: <AddCircleOutlineIcon />, path: "/incident/create" },
+          { text: "Dashboard", icon: <DashboardIcon />, path: "/incident/dashboard" },
+          { text: "Create Incident", icon: <CreateIcon />, path: "/incident/create" },
           ...(!isUserRole ? [
-            { text: "All Incidents", icon: <ListIcon />, path: "/incident/all" }
+            { 
+              text: "All Incidents", 
+              icon: <AssignmentIcon />, 
+              path: "/incident/allincidents" 
+            }
           ] : []),
-          { text: "Assigned Incidents", icon: <ListIcon />, path: "/incident/assigned" },
-          { text: "My Incidents", icon: <ListIcon />, path: "/incident/my" },
-          { text: "Reports", icon: <DashboardIcon />, path: "/reports" },
+          { 
+            text: "Assigned Incidents", 
+            icon: <WorkOutlineIcon />, 
+            path: "/incident/myassignedincidents" 
+          },
+          { 
+            text: "My Incidents", 
+            icon: <AssignmentIcon />, 
+            path: "/incident/mycreatedincidents" 
+          },
+          { 
+            text: "Reports", 
+            icon: <BarChartIcon />, 
+            path: "/reports" 
+          },
         ],
       },
       {

@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Box, Tab, Typography, TextField, Button } from '@mui/material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import AxiosInstance from '../../Components/AxiosInstance';
+import { useAuth } from "../../Components/AuthProvider";
 
 const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
   const [tab, setTab] = useState("1");
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
   const [logs, setLogs] = useState([]);
+  const { userRoles } = useAuth();
+  const isUserRole = userRoles.includes('User');
   
   const fetchLogs = async () => {
     try {
@@ -150,7 +153,7 @@ const CommunicationLogs = ({ incidentId, onIncidentUpdate }) => {
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <TabList onChange={(e, newValue) => setTab(newValue)}>
           <Tab label="Communication" value="1" />
-          <Tab label="Logs" value="2" />
+          {!isUserRole && <Tab label="Logs" value="2" />}
         </TabList>
       </Box>
       

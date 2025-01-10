@@ -13,6 +13,7 @@ import MyCreatedIncidents from './Pages/Incidents/MyCreatedIncidents';
 import MyAssignedIncidents from './Pages/Incidents/MyAssignedIncidents';
 import IncidentDashboard from './Pages/Incidents/IncidentDashboard';
 import IncidentReports from './Pages/Incidents/IncidentReports';
+import UserProfile from './Pages/UserManagement/UserProfile';
 
 function App() {
   return (
@@ -31,13 +32,14 @@ function App() {
               <Layout>
                 <Routes>
                   <Route path="/dashboard" element={ <ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                  <Route path="/incident/all" element={<ProtectedRoute><IncidentHome /></ProtectedRoute>} />
-                  <Route path="/incident/my" element={<ProtectedRoute><MyCreatedIncidents /></ProtectedRoute>} />
-                  <Route path="/incident/assigned" element={<ProtectedRoute><MyAssignedIncidents /></ProtectedRoute>} />
+                  <Route path="/incident/allincidents" element={<ProtectedRoute><IncidentHome /></ProtectedRoute>} />
+                  <Route path="/incident/mycreatedincidents" element={<ProtectedRoute><MyCreatedIncidents /></ProtectedRoute>} />
+                  <Route path="/incident/myassignedincidents" element={<ProtectedRoute><MyAssignedIncidents /></ProtectedRoute>} />
                   <Route path="/incident/create" element={<ProtectedRoute><AddIncident /></ProtectedRoute>} />
                   <Route path="/incidents/:id" element={<ProtectedRoute><ViewIncidentDetails /></ProtectedRoute>} />
                   <Route path="/incident/dashboard" element={<ProtectedRoute>< IncidentDashboard/></ProtectedRoute>} />
                   <Route path="/reports" element={<ProtectedRoute>< IncidentReports/></ProtectedRoute>} />
+                  <Route path="/userprofile" element={<ProtectedRoute>< UserProfile/></ProtectedRoute>} />
                 </Routes>
               </Layout>
             

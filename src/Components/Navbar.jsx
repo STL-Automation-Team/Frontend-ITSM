@@ -96,7 +96,7 @@ export default function Navbar() {
         try {
           const response = await AxiosInstance.get(`http://10.100.130.76:3000/contact/${contactId}`);
           console.log(response);
-          const userData = response.data.name;
+          const userData = response.data.firstname;
           console.log(userData);
           if (userData) {
             setUserName(userData);
@@ -136,6 +136,10 @@ export default function Navbar() {
     handleMenuClose();
   };
 
+  const handleProfileClick = () => {
+    navigate("/userprofile"); // Adjust the path based on your routing setup
+  };
+
   const renderMenu = (
     <Menu
       anchorEl={anchorEl}
@@ -152,6 +156,10 @@ export default function Navbar() {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
+      <MenuItem onClick={handleProfileClick}>
+        <EditIcon sx={{ mr: 1 }} />
+        User Profile
+      </MenuItem>
       <MenuItem onClick={handleLogout}>
         <LogoutIcon sx={{ mr: 1 }} />
         Logout

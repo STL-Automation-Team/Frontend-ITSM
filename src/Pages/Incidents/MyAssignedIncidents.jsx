@@ -309,7 +309,7 @@ export default function MyAssignedIncidents() {
       </TableContainer>
 
       <TablePagination
-        component="div"
+        component={Paper}
         count={totalRecords}
         page={page}
         onPageChange={handlePageChange}
