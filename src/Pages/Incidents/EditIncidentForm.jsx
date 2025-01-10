@@ -1,38 +1,38 @@
-import React, { useState, useEffect } from "react";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import SearchIcon from "@mui/icons-material/Search";
 import {
-  Box,
-  Grid,
-  TextField,
-  Select,
-  MenuItem,
-  Button,
-  FormControl,
-  Typography,
   Autocomplete,
-  InputAdornment,
-  IconButton,
+  Box,
+  Button,
+  Checkbox,
   Chip,
   Dialog,
-  DialogTitle,
+  DialogActions,
   DialogContent,
   DialogContentText,
-  DialogActions,
-  Checkbox,
+  DialogTitle,
+  FormControl,
   FormControlLabel,
+  Grid,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import DeleteIcon from "@mui/icons-material/Delete";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "../../Components/AuthProvider";
+import AxiosInstance from "../../Components/AxiosInstance";
 import {
-  fetchStatuses,
-  fetchPriorities,
+  fetchAssignmentGroup,
   fetchContacts,
   fetchDepartments,
-  fetchAssignmentGroup,
+  fetchPriorities,
+  fetchStatuses,
 } from "./APIServices";
-import AxiosInstance from "../../Components/AxiosInstance";
-import { useAuth } from "../../Components/AuthProvider";
 
 const colors = {
   primary: "#2196f3",

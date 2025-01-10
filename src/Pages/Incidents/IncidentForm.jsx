@@ -1,31 +1,35 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Grid,
-  TextField,
-  Select,
-  MenuItem,
-  Button,
-  FormControl,
-  Typography,
-  Autocomplete,
-  InputAdornment,
-  IconButton,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import {
-  fetchStatuses,
-  fetchPriorities,
+  Autocomplete,
+  Box,
+  Button,
+  FormControl,
+  Grid,
+  IconButton,
+  List,
+  ListItem,
+  ListItemSecondaryAction,
+  ListItemText,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+} from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from "../../Components/AuthProvider";
+import AxiosInstance from "../../Components/AxiosInstance";
+
+import {
+  fetchAssignmentGroup,
   fetchContacts,
   fetchDepartments,
-  fetchAssignmentGroup,
+  fetchPriorities,
+  fetchStatuses,
 } from "./APIServices";
-import AxiosInstance from "../../Components/AxiosInstance";
 import IncidentAddSuccessAlert from "./IncidentAddSuccessAlert";
-import { useAuth } from "../../Components/AuthProvider";
-import { useNavigate } from 'react-router-dom';
 
 
 const colors = {
@@ -45,24 +49,26 @@ const colors = {
 
 
 const IncidentForm = ({ onSubmit }) => {
-  const { userRoles } = useAuth();
-  const isUserRole = userRoles.includes('User');
-  const [formData, setFormData] = useState({
-    category: "", 
-    categoryId: "", 
-    subcategory: "", 
+  const initialFormState = {
+    category: "",
+    categoryId: "",
+    subcategory: "",
     status: "New",
     title: "",
     description: "",
-    attachments: null,
+    attachments: [],
     location_id: "2",
     contact_id: 0,
-    department_id: 4, // Default department for User role
+    department_id: 4,
     assignment_group: "STL-GGN-IT",
     sla_status: "SLA Met",
     priority: "Low",
     cc: "",
-  });
+  };
+
+  const { userRoles } = useAuth();
+  const isUserRole = userRoles.includes('User');
+  const [formData, setFormData] = useState(initialFormState);
 
 
   const [snackbar, setSnackbar] = useState({
@@ -182,28 +188,48 @@ const IncidentForm = ({ onSubmit }) => {
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.pdf,.doc,.docx,.txt';
+    fileInput.multiple = true;
     fileInput.style.display = 'none';
 
     // Handle file selection
     fileInput.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        if (file.size <= 2 * 1024 * 1024) { // 2MB limit
-          setSelectedFile(file);
-          setFormData(prev => ({
-            ...prev,
-            attachments: file
-          }));
-        } else {
-          alert("File size should be less than 2MB");
-        }
+      const files = Array.from(e.target.files);
+      const validFiles = files.filter(file => file.size <= 2 * 1024 * 1024);
+      if (validFiles.length !== files.length) {
+        alert("Some files were skipped because they exceed 2MB size limit");
       }
+
+      setFormData(prev => ({
+        ...prev,
+        attachments: [...prev.attachments, ...validFiles]
+      }));
+      // if (file) {
+      //   if (file.size <= 2 * 1024 * 1024) { // 2MB limit
+      //     setSelectedFile(file);
+      //     setFormData(prev => ({
+      //       ...prev,
+      //       attachments: [...prev.attachments, ...validFiles]
+      //     }));
+      //   } else {
+      //     alert("File size should be less than 2MB");
+      //   }
+      // }
     };
 
     // Trigger file selection dialog
     fileInput.click();
   };
+  const handleRemoveFile = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index)
+    }));
+  };
 
+  const handleCancel = () => {
+    setFormData(initialFormState);
+    setSelectedFile(null);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -252,7 +278,10 @@ const IncidentForm = ({ onSubmit }) => {
 
     // Handle attachments
     if (formData.attachments) {
-      formDataToSend.append("attachments", formData.attachments);
+      // formDataToSend.append("attachments", formData.attachments);
+      formData.attachments.forEach((file, index) => {
+        formDataToSend.append(`attachments[${index}]`, file);
+      });
     }
 
     try {
@@ -271,6 +300,7 @@ const IncidentForm = ({ onSubmit }) => {
         setShowSuccessModal(true);
         onSubmit(response.data);
         setSelectedFile(null);
+        handleCancel();
         // Optional: Reset form data here if needed
       }
     } catch (error) {
@@ -636,51 +666,83 @@ const IncidentForm = ({ onSubmit }) => {
 
         {/* Attachment */}
         <Grid item xs={12}>
-          <Typography sx={labelStyle}>Attachment</Typography>
-          <Box 
-            sx={{
-              ...uploadButtonStyle,
-              backgroundColor: selectedFile ? '#e8f4ff' : '#f9fafb'
-            }}
-            onClick={handleFileUpload}
-          >
-            <CloudUploadIcon sx={{ mr: 1 }} />
-            <Typography variant="body2">
-              {selectedFile ? selectedFile.name : "Click to Upload (Max 2 MB)"}
-            </Typography>
-          </Box>
-        </Grid>
-
-        {/* Action Buttons */}
-        <Grid
-          item
-          xs={12}
-          sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}
+        <Typography sx={labelStyle}>Attachments</Typography>
+        <Box 
+          sx={{
+            ...uploadButtonStyle,
+            backgroundColor: formData.attachments.length > 0 ? '#e8f4ff' : '#f9fafb',
+            marginBottom: 2
+          }}
+          onClick={handleFileUpload}
         >
-          <Button
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              borderColor: "#e5e7eb",
-              color: colors.text.primary,
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            sx={{
-              textTransform: "none",
-              backgroundColor: colors.primary,
-              "&:hover": {
-                backgroundColor: colors.primary + "dd",
-              },
-            }}
-          >
-            Submit
-          </Button>
-        </Grid>
+          <CloudUploadIcon sx={{ mr: 1 }} />
+          <Typography variant="body2">
+            Click to Upload Multiple Files (Max 2 MB each)
+          </Typography>
+        </Box>
+        
+        {formData.attachments.length > 0 && (
+          <List>
+            {formData.attachments.map((file, index) => (
+              <ListItem
+                key={index}
+                sx={{
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '4px',
+                  marginBottom: '4px'
+                }}
+              >
+                <ListItemText 
+                  primary={file.name}
+                  secondary={`${(file.size / 1024 / 1024).toFixed(2)} MB`}
+                />
+                <ListItemSecondaryAction>
+                  <IconButton
+                    edge="end"
+                    onClick={() => handleRemoveFile(index)}
+                    size="small"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))}
+          </List>
+        )}
+      </Grid>
+
+      {/* Action Buttons */}
+      <Grid
+        item
+        xs={12}
+        sx={{ display: "flex", gap: 2, justifyContent: "flex-end", mt: 2 }}
+      >
+        <Button
+          variant="outlined"
+          onClick={handleCancel}
+          sx={{
+            textTransform: "none",
+            borderColor: "#e5e7eb",
+            color: colors.text.primary,
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          variant="contained"
+          disabled={isSubmitting}
+          sx={{
+            textTransform: "none",
+            backgroundColor: colors.primary,
+            "&:hover": {
+              backgroundColor: colors.primary + "dd",
+            },
+          }}
+        >
+          Submit
+        </Button>
+      </Grid>
       </Grid>
       <IncidentAddSuccessAlert
         open={showSuccessModal}
